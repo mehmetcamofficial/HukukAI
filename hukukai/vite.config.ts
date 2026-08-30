@@ -3,79 +3,85 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
-import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
+// Sensible defaults for local and Vercel environments.
+// PORT and BASE_PATH are optional – they override defaults when provided.
+const port = (() => {
+  const raw = process.env.PORT;
+  if (!raw) return 5173;
+  const parsed = Number(raw);
+  return Number.isNaN(parsed) || parsed <= 0 ? 5173 : parsed;
+})();
 
-const rawPort = process.env.PORT;
+const base = process.env.BASE_PATH ?? '/';
 
-if (!rawPort) {
-  throw new Error(
-    'PORT environment variable is required but was not provided.',
-  );
-}
+export default defineConfig(async () => {
+  const plugins: any[] = [react(), tailwindcss()];
 
-const port = Number(rawPort);
+  // Optional: Replit runtime error overlay – only if installed.
+  // Not required for production builds.
+  try {
+    const mod = await import('@replit/vite-plugin-runtime-error-modal');
+    const runtimeErrorOverlay = (mod as any).default ?? mod;
+    if (typeof runtimeErrorOverlay === 'function') {
+      plugins.push(runtimeErrorOverlay());
+    }
+  } catch {
+    // package not installed or not needed outside Replit – ignore
+  }
 
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
+  // Optional Replit dev plugins – only when running inside Replit.
+  if (process.env.NODE_ENV !== 'production' && process.env.REPL_ID !== undefined) {
+    try {
+      const carto = await import('@replit/vite-plugin-cartographer');
+      plugins.push(
+        (carto as any).cartographer({
+          root: path.resolve(import.meta.dirname, '..'),
+        }),
+      );
+    } catch {
+      // optional – ignore if not installed
+    }
+    try {
+      const banner = await import('@replit/vite-plugin-dev-banner');
+      plugins.push((banner as any).devBanner());
+    } catch {
+      // optional – ignore
+    }
+  }
 
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    'BASE_PATH environment variable is required but was not provided.',
-  );
-}
-
-export default defineConfig({
-  base: basePath,
-  plugins: [
-    react(),
-    tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== 'production' &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import('@replit/vite-plugin-cartographer').then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, '..'),
-            }),
-          ),
-          await import('@replit/vite-plugin-dev-banner').then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, 'src'),
-      '@assets': path.resolve(
-        import.meta.dirname,
-        '..',
-        '..',
-        'attached_assets',
-      ),
+  return {
+    base,
+    plugins,
+    resolve: {
+      alias: {
+        '@': path.resolve(import.meta.dirname, 'src'),
+        '@assets': path.resolve(
+          import.meta.dirname,
+          '..',
+          '..',
+          'attached_assets',
+        ),
+      },
+      dedupe: ['react', 'react-dom'],
     },
-    dedupe: ['react', 'react-dom'],
-  },
-  root: path.resolve(import.meta.dirname),
-  build: {
-    outDir: path.resolve(import.meta.dirname, 'dist/public'),
-    emptyOutDir: true,
-  },
-  server: {
-    port,
-    strictPort: true,
-    host: '0.0.0.0',
-    allowedHosts: true,
-    fs: {
-      strict: true,
+    root: path.resolve(import.meta.dirname),
+    build: {
+      outDir: path.resolve(import.meta.dirname, 'dist/public'),
+      emptyOutDir: true,
     },
-  },
-  preview: {
-    port,
-    host: '0.0.0.0',
-    allowedHosts: true,
-  },
+    server: {
+      port,
+      strictPort: false,
+      host: '0.0.0.0',
+      allowedHosts: true,
+      fs: {
+        strict: true,
+      },
+    },
+    preview: {
+      port,
+      host: '0.0.0.0',
+      allowedHosts: true,
+    },
+  };
 });
