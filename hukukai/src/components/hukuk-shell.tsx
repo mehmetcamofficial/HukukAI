@@ -29,7 +29,7 @@ const demoUser = {
 } as const;
 
 const primaryNav: NavItem[] = [
-  { href: '/', label: 'Genel Bakış', icon: LayoutDashboard },
+  { href: '/app', label: 'Genel Bakış', icon: LayoutDashboard },
   { href: '/davalar', label: 'Davalar', icon: BriefcaseBusiness },
   { href: '/muvekkiller', label: 'Müvekkiller', icon: Users },
   { href: '/belgeler', label: 'Belgeler', icon: FileText },
@@ -50,7 +50,7 @@ const utilityNav: NavItem[] = [
 
 function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const [location] = useLocation();
-  const active = item.href === '/' ? location === '/' : location.startsWith(item.href);
+  const active = item.href === '/app' ? location === '/app' : location.startsWith(item.href);
   const Icon = item.icon;
   return (
     <Link
@@ -92,7 +92,7 @@ function Sidebar({
       } ${collapsed ? 'md:w-[60px]' : ''}`}
     >
       <div className="flex h-[56px] items-center justify-between border-b border-sidebar-border px-3 md:h-[49px]">
-        <Link href="/" onClick={onNavigate} data-testid="link-brand" className={`flex items-center gap-2 ${collapsed ? 'md:mx-auto' : ''}`}>
+        <Link href="/app" onClick={onNavigate} data-testid="link-brand" className={`flex items-center gap-2 ${collapsed ? 'md:mx-auto' : ''}`}>
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground md:h-7 md:w-7">
             <ShieldCheck size={16} strokeWidth={2.2} />
           </span>

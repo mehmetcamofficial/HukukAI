@@ -103,7 +103,12 @@ export function CasesPage() {
             Yeni dava
           </button>
         }
-      />
+      >
+        <div className="flex items-center gap-2 rounded border border-amber-300/40 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Demo
+        </div>
+      </PageHeader>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <SearchInput
@@ -126,18 +131,11 @@ export function CasesPage() {
         </select>
       </div>
 
-      {casesQuery.isLoading ? (
+      {casesQuery.isLoading && !casesQuery.data ? (
         <div className="space-y-2" data-testid="status-loading">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-12 shimmer rounded-md" />
           ))}
-        </div>
-      ) : casesQuery.isError && !casesQuery.data ? (
-        <div className="rounded-md border border-destructive/20 bg-destructive/5 p-6 text-center" data-testid="status-error">
-          <p className="text-sm font-medium text-destructive">Davalar yüklenemedi</p>
-          <button onClick={() => casesQuery.refetch()} className="mt-2 text-xs text-primary hover:underline" data-testid="button-retry">
-            Tekrar dene
-          </button>
         </div>
       ) : (
         <>

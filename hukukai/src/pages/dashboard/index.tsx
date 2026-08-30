@@ -39,8 +39,8 @@ const fallbackDashboard = {
 };
 
 const fallbackActivity = [
-  { id: 'act-001', action: 'Belge eklendi', detail: 'Bilirkişi_Raporu_2026_145.pdf — 2026/145', createdAt: '2026-08-27', actor: 'Av. Ayşe Yılmaz' },
-  { id: 'act-002', action: 'Duruşma notu', detail: '14.09.2026 tarihli duruşma tutanağı eklendi', createdAt: '2026-08-26', actor: 'Av. Ayşe Yılmaz' },
+  { id: 'act-001', action: 'Belge eklendi', detail: 'Bilirkişi_Raporu_2026_145.pdf — 2026/145', createdAt: '2026-08-27', actor: 'Av. Behçet Alp' },
+  { id: 'act-002', action: 'Duruşma notu', detail: '14.09.2026 tarihli duruşma tutanağı eklendi', createdAt: '2026-08-26', actor: 'Ekip Avukatı' },
   { id: 'act-003', action: 'Duruşma eklendi', detail: 'Sonraki duruşma: 20.01.2027 — Kurgu 14. İş Mahkemesi', createdAt: '2026-08-25', actor: 'Sistem' },
 ];
 

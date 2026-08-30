@@ -11,7 +11,6 @@ import { ClientsPage } from '@/pages/clients';
 import {
   ArchivePage,
   AssistantPage,
-  CalendarPage,
   CaseWorkspacePage,
   DocumentsPage,
   DraftsPage,
@@ -20,6 +19,8 @@ import {
   ResearchRoutePage,
   SettingsPage,
 } from '@/pages/hukuk-pages';
+import { CalendarPage } from '@/pages/calendar';
+import { LandingPage } from '@/pages/landing';
 import {
   Route,
   Switch,
@@ -36,12 +37,12 @@ const queryClient = new QueryClient({
   },
 });
 
-function Router() {
+function ApplicationRouter() {
   return (
     <RoutedErrorBoundary>
       <HukukShell>
         <Switch>
-          <Route path="/" component={DashboardPage} />
+          <Route path="/app" component={DashboardPage} />
           <Route path="/davalar" component={CasesPage} />
           <Route path="/davalar/:caseId" component={CaseWorkspacePage} />
           <Route path="/muvekkiller" component={ClientsPage} />
@@ -71,7 +72,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
+          <Switch>
+            <Route path="/" component={LandingPage} />
+            <ApplicationRouter />
+          </Switch>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
