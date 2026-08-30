@@ -12,14 +12,14 @@ export const demoActivity: Activity[] = [
     action: "Belge eklendi",
     detail: "Bilirkişi_Raporu_2026_145.pdf — 2026/145",
     createdAt: "2026-08-27",
-    actor: "Av. Ayşe Yılmaz",
+    actor: "Av. Behçet Alp",
   },
   {
     id: "act-002",
     action: "Duruşma notu",
     detail: "14.09.2026 tarihli duruşma tutanağı eklendi",
     createdAt: "2026-08-26",
-    actor: "Av. Ayşe Yılmaz",
+    actor: "Ekip Avukatı",
   },
   {
     id: "act-003",
@@ -33,14 +33,14 @@ export const demoActivity: Activity[] = [
     action: "Araştırma yapıldı",
     detail: "Bilirkişi raporuna itiraz usulü araştırıldı",
     createdAt: "2026-08-20",
-    actor: "Av. Ayşe Yılmaz",
+    actor: "Av. Behçet Alp",
   },
   {
     id: "act-005",
     action: "Belge güncellendi",
     detail: "Puantaj çizelgesi güncellendi — 2025 tam yıl",
     createdAt: "2026-08-15",
-    actor: "Av. Ayşe Yılmaz",
+    actor: "Ekip Avukatı",
   },
   {
     id: "act-006",

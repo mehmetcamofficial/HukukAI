@@ -11,7 +11,6 @@ import { ClientsPage } from '@/pages/clients';
 import {
   ArchivePage,
   AssistantPage,
-  CalendarPage,
   CaseWorkspacePage,
   DocumentsPage,
   DraftsPage,
@@ -20,6 +19,10 @@ import {
   ResearchRoutePage,
   SettingsPage,
 } from '@/pages/hukuk-pages';
+import { CalendarPage } from '@/pages/calendar';
+import { LandingPage } from '@/pages/landing';
+import { LoginPage } from '@/pages/login';
+import { DemoAuthGuard } from '@/components/app/demo-auth-guard';
 import {
   Route,
   Switch,
@@ -36,28 +39,30 @@ const queryClient = new QueryClient({
   },
 });
 
-function Router() {
+function ApplicationRouter() {
   return (
-    <RoutedErrorBoundary>
-      <HukukShell>
-        <Switch>
-          <Route path="/" component={DashboardPage} />
-          <Route path="/davalar" component={CasesPage} />
-          <Route path="/davalar/:caseId" component={CaseWorkspacePage} />
-          <Route path="/muvekkiller" component={ClientsPage} />
-          <Route path="/belgeler" component={DocumentsPage} />
-          <Route path="/hukuki-arastirma" component={ResearchRoutePage} />
-          <Route path="/emsal-kararlar" component={PrecedentPage} />
-          <Route path="/mevzuat" component={LegislationPage} />
-          <Route path="/dilekceler" component={DraftsPage} />
-          <Route path="/takvim" component={CalendarPage} />
-          <Route path="/ai-asistan" component={AssistantPage} />
-          <Route path="/arsiv" component={ArchivePage} />
-          <Route path="/ayarlar" component={SettingsPage} />
-          <Route component={NotFound} />
-        </Switch>
-      </HukukShell>
-    </RoutedErrorBoundary>
+    <DemoAuthGuard>
+      <RoutedErrorBoundary>
+        <HukukShell>
+          <Switch>
+            <Route path="/app" component={DashboardPage} />
+            <Route path="/davalar" component={CasesPage} />
+            <Route path="/davalar/:caseId" component={CaseWorkspacePage} />
+            <Route path="/muvekkiller" component={ClientsPage} />
+            <Route path="/belgeler" component={DocumentsPage} />
+            <Route path="/hukuki-arastirma" component={ResearchRoutePage} />
+            <Route path="/emsal-kararlar" component={PrecedentPage} />
+            <Route path="/mevzuat" component={LegislationPage} />
+            <Route path="/dilekceler" component={DraftsPage} />
+            <Route path="/takvim" component={CalendarPage} />
+            <Route path="/ai-asistan" component={AssistantPage} />
+            <Route path="/arsiv" component={ArchivePage} />
+            <Route path="/ayarlar" component={SettingsPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </HukukShell>
+      </RoutedErrorBoundary>
+    </DemoAuthGuard>
   );
 }
 
@@ -71,7 +76,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
+          <Switch>
+            <Route path="/" component={LandingPage} />
+            <Route path="/login" component={LoginPage} />
+            <ApplicationRouter />
+          </Switch>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

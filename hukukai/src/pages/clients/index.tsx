@@ -24,7 +24,12 @@ export function ClientsPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'INDIVIDUAL', email: '', phone: '' });
-  const clients = clientsQuery.data ?? [];
+  const fallbackClients = [
+  { id: 'client-001', name: 'Deniz Aras', type: 'INDIVIDUAL', email: '', phone: '' },
+  { id: 'client-002', name: 'Ece Korkmaz', type: 'INDIVIDUAL', email: '', phone: '' },
+  { id: 'client-003', name: 'Kuzey Yapı A.Ş.', type: 'CORPORATE', email: '', phone: '' },
+];
+const clients = clientsQuery.data ?? fallbackClients;
   const visible = clients.filter((c) =>
     c.name.toLocaleLowerCase('tr-TR').includes(search.toLocaleLowerCase('tr-TR')),
   );
@@ -51,7 +56,12 @@ export function ClientsPage() {
             Yeni müvekkil
           </button>
         }
-      />
+      >
+        <div className="flex items-center gap-2 rounded border border-amber-300/40 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Demo
+        </div>
+      </PageHeader>
 
       <div className="mb-4 flex items-center gap-3">
         <SearchInput
@@ -64,7 +74,7 @@ export function ClientsPage() {
         <span className="mono text-[11px] text-muted-foreground">{visible.length} kayıt</span>
       </div>
 
-      {clientsQuery.isLoading ? (
+      {clientsQuery.isLoading && !clientsQuery.data ? (
         <div className="space-y-2" data-testid="status-loading">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-12 shimmer rounded-md" />

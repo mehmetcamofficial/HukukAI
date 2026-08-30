@@ -37,6 +37,8 @@ const fallbackCases = [
     opposingParty: 'Marmara Lojistik A.Ş.',
     status: 'ACTIVE',
     nextHearing: '2026-09-14',
+    nextDeadline: '2026-09-02',
+    responsible: 'Av. Behçet Alp',
     documentCount: 10,
   },
   {
@@ -49,6 +51,8 @@ const fallbackCases = [
     opposingParty: 'Anadolu Tekstil Ltd. Şti.',
     status: 'CLOSED',
     nextHearing: null,
+    nextDeadline: null,
+    responsible: 'Av. Behçet Alp',
     documentCount: 0,
   },
   {
@@ -61,6 +65,8 @@ const fallbackCases = [
     opposingParty: 'Mehmet Yıldız',
     status: 'CLOSED',
     nextHearing: null,
+    nextDeadline: null,
+    responsible: 'Av. Behçet Alp',
     documentCount: 0,
   },
 ];
@@ -103,7 +109,12 @@ export function CasesPage() {
             Yeni dava
           </button>
         }
-      />
+      >
+        <div className="flex items-center gap-2 rounded border border-amber-300/40 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Demo
+        </div>
+      </PageHeader>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <SearchInput
@@ -126,31 +137,27 @@ export function CasesPage() {
         </select>
       </div>
 
-      {casesQuery.isLoading ? (
+      {casesQuery.isLoading && !casesQuery.data ? (
         <div className="space-y-2" data-testid="status-loading">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-12 shimmer rounded-md" />
           ))}
         </div>
-      ) : casesQuery.isError && !casesQuery.data ? (
-        <div className="rounded-md border border-destructive/20 bg-destructive/5 p-6 text-center" data-testid="status-error">
-          <p className="text-sm font-medium text-destructive">Davalar yüklenemedi</p>
-          <button onClick={() => casesQuery.refetch()} className="mt-2 text-xs text-primary hover:underline" data-testid="button-retry">
-            Tekrar dene
-          </button>
-        </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block overflow-hidden rounded-md border border-border bg-card">
+          <div className="hidden overflow-hidden rounded-md border border-border bg-card lg:block">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wider">Dava</TableHead>
-                  <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wider">Mahkeme</TableHead>
-                  <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wider">Karşı Taraf</TableHead>
-                  <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wider">Durum</TableHead>
-                  <TableHead className="h-9 text-[11px] font-semibold uppercase tracking-wider text-right">Sonraki Adım</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Dosya ↕</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Müvekkil</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Mahkeme</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Konu</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Duruşma</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Son Süre</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Sorumlu</TableHead>
+                  <TableHead className="h-10 text-[10px] font-semibold uppercase tracking-wider">Durum</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -165,18 +172,18 @@ export function CasesPage() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell className="text-xs font-medium">{item.clientName}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {item.court}
-                      <p className="mono text-[10px] opacity-70">{item.category}</p>
                     </TableCell>
-                    <TableCell className="text-sm">{item.opposingParty}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{item.category}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{formatDate(item.nextHearing)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-amber-700 dark:text-amber-300">{formatDate(item.nextDeadline)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{'responsible' in item ? item.responsible : 'Av. Behçet Alp'}</TableCell>
                     <TableCell>
                       <StatusBadge tone={item.status === 'ACTIVE' ? 'success' : 'warning'}>
                         {item.status === 'ACTIVE' ? 'Aktif' : item.status === 'WAITING' ? 'Bekliyor' : 'Kapandı'}
                       </StatusBadge>
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
-                      {formatDate(item.nextHearing)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -185,7 +192,7 @@ export function CasesPage() {
           </div>
 
           {/* Mobile rows */}
-          <div className="md:hidden space-y-2">
+          <div className="space-y-2 lg:hidden">
             {cases.map((item) => (
               <Link
                 key={item.id}
@@ -207,6 +214,7 @@ export function CasesPage() {
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1"><BriefcaseBusiness size={10} /> {item.clientName}</span>
                   {item.nextHearing && <span className="flex items-center gap-1"><CalendarDays size={10} /> {formatDate(item.nextHearing)}</span>}
+                  {item.nextDeadline && <span className="flex items-center gap-1 text-amber-700 dark:text-amber-300"><Clock3 size={10} /> Son süre: {formatDate(item.nextDeadline)}</span>}
                 </div>
               </Link>
             ))}

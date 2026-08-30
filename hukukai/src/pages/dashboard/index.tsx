@@ -39,8 +39,8 @@ const fallbackDashboard = {
 };
 
 const fallbackActivity = [
-  { id: 'act-001', action: 'Belge eklendi', detail: 'Bilirkişi_Raporu_2026_145.pdf — 2026/145', createdAt: '2026-08-27', actor: 'Av. Ayşe Yılmaz' },
-  { id: 'act-002', action: 'Duruşma notu', detail: '14.09.2026 tarihli duruşma tutanağı eklendi', createdAt: '2026-08-26', actor: 'Av. Ayşe Yılmaz' },
+  { id: 'act-001', action: 'Belge eklendi', detail: 'Bilirkişi_Raporu_2026_145.pdf — 2026/145', createdAt: '2026-08-27', actor: 'Av. Behçet Alp' },
+  { id: 'act-002', action: 'Duruşma notu', detail: '14.09.2026 tarihli duruşma tutanağı eklendi', createdAt: '2026-08-26', actor: 'Ekip Avukatı' },
   { id: 'act-003', action: 'Duruşma eklendi', detail: 'Sonraki duruşma: 20.01.2027 — Kurgu 14. İş Mahkemesi', createdAt: '2026-08-25', actor: 'Sistem' },
 ];
 
@@ -74,7 +74,7 @@ export function DashboardPage() {
     <div className="mx-auto max-w-[1280px]">
       <PageHeader
         title="Genel Bakış"
-        description="Dosyalarınızın durumu ve öncelikler."
+        description="Hoş geldiniz, Av. Behçet Alp · Dosyalarınızın durumu ve öncelikler."
       />
 
       {isDemoMode && (
@@ -95,6 +95,7 @@ export function DashboardPage() {
         </div>
       ) : (
         <>
+          <div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktif Dosyalar</h2><Link href="/davalar" className="text-xs font-semibold text-primary hover:underline">Tüm davalar</Link></div>
           <Link
             href="/davalar/case-2026-145"
             className="mb-5 block rounded-md border border-border bg-card p-4 transition-colors hover:bg-muted/50"
