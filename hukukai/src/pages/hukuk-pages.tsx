@@ -828,25 +828,30 @@ export function CaseWorkspacePage() {
       </button>
       {caseQuery.isLoading ? <LoadingBlock /> : (
         <>
-          <div className="mb-4 rounded-md border border-border bg-card p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="mb-4 overflow-hidden rounded-md border border-border bg-card shadow-sm">
+            <div className="border-b border-border bg-muted/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-[.12em] text-muted-foreground">Dava çalışma alanı <span className="ml-2 text-primary">DEMO</span></div>
+            <div className="p-4">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <StatusBadge tone="success">{item.status}</StatusBadge>
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <StatusBadge tone="success">Aktif Dosya</StatusBadge>
                   <span className="mono text-[11px] text-muted-foreground">{item.caseNumber}</span>
-                  <span className="text-muted-foreground">·</span>
                   <span className="text-[11px] text-muted-foreground">{item.category}</span>
                 </div>
-                <h1 className="text-base font-semibold">{item.title}</h1>
-                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                  <span>{item.court}</span>
-                  <span>Müvekkil: <strong className="text-foreground">{item.clientName}</strong></span>
-                  <span>Karşı taraf: <strong className="text-foreground">{item.opposingParty}</strong></span>
-                  {item.nextHearing && <span className="flex items-center gap-1"><CalendarDays size={11} /> Duruşma: {new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(item.nextHearing))}</span>}
-                  {item.nextDeadline && <span className="flex items-center gap-1"><Clock3 size={11} /> Süre: {new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(item.nextDeadline))}</span>}
+                <h1 className="text-xl font-semibold tracking-tight">{item.title}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">{item.court}</p>
+                <div className="mt-4 grid max-w-[780px] gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="bg-card px-3 py-2.5"><p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Müvekkil</p><p className="mt-1 text-xs font-semibold">{item.clientName}</p></div>
+                  <div className="bg-card px-3 py-2.5"><p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Karşı Taraf</p><p className="mt-1 truncate text-xs font-semibold">{item.opposingParty}</p></div>
+                  <div className="bg-card px-3 py-2.5"><p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Dosya Sorumlusu</p><p className="mt-1 text-xs font-semibold">Av. Behçet Alp</p></div>
+                  <div className="bg-amber-50/60 px-3 py-2.5 dark:bg-amber-950/20"><p className="text-[9px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Son Süre</p><p className="mt-1 text-xs font-semibold text-amber-800 dark:text-amber-300">{item.nextDeadline ? new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(item.nextDeadline)) : '—'}</p></div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                  {item.nextHearing && <span className="flex items-center gap-1"><CalendarDays size={11} /> Sonraki duruşma: {new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(item.nextHearing))}</span>}
+                  {item.nextDeadline && <span className="flex items-center gap-1"><Clock3 size={11} /> Son süre: {new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(item.nextDeadline))}</span>}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 xl:max-w-[390px] xl:justify-end">
                 <button
                   onClick={() => createAnalysis.mutate({ caseId }, { onSuccess: (result) => queryClient.setQueryData(getGetCaseAnalysisQueryKey(caseId), result) })}
                   disabled={createAnalysis.isPending}
@@ -869,17 +874,27 @@ export function CaseWorkspacePage() {
                 >
                   <Info size={14} />Karşı Taraf Gibi Analiz Et
                 </button>
+                <button
+                  onClick={() => setTab("drafts")}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium hover:bg-muted"
+                  data-testid="button-create-draft"
+                >
+                  <FileText size={14} />Taslak Oluştur
+                </button>
               </div>
             </div>
             <p className="mt-3 text-[10px] text-muted-foreground/60">Demo analiz sonucu · Kurgusal dava verisi kullanılmıştır</p>
+            </div>
           </div>
 
-          <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
+          <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border bg-background/70" role="tablist" aria-label="Dava dosyası bölümleri">
             {tabConfig.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-semibold ${tab === key ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+                role="tab"
+                aria-selected={tab === key}
+                className={`min-h-11 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-semibold transition-colors ${tab === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
                 data-testid={`tab-case-${key}`}
               >
                 {label}

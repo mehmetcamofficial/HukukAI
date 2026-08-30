@@ -1,11 +1,31 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import {
-  ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, FileText,
-  Gavel, Menu, Scale, Search, ShieldCheck, X,
+  ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, ExternalLink,
+  FileText, Gavel, Globe, MapPin, Menu, Phone, Scale, Search, Send,
+  ShieldCheck, Star, X,
 } from 'lucide-react';
+import { demoAnnouncements } from '@/lib/demo-announcements';
 
 const caseHref = '/davalar/case-2026-145';
+
+const practiceAreas = [
+  { title: 'Ticaret ve Şirketler Hukuku', summary: 'Şirketlerin kuruluşundan günlük hukuki ihtiyaçlarına uzanan danışmanlık.', services: 'Şirket kuruluşu · Sözleşmeler · Uyuşmazlık yönetimi' },
+  { title: 'Gayrimenkul ve Kira Hukuku', summary: 'Taşınmaz, kira ilişkisi ve ilgili uyuşmazlıklarda hukuki destek.', services: 'Kira tespit · Tahliye · Taşınmaz işlemleri' },
+  { title: 'Yabancılar Hukuku ve Uluslararası Yatırımlar', summary: 'Türkiye ile bağlantılı yatırımlar ve yabancı unsurlu işlemler için yaklaşım.', services: 'Yatırım süreçleri · İkamet · Uyumlu işlem akışı' },
+  { title: 'Aile Hukuku ve Tanıma-Tenfiz', summary: 'Aile hukuku uyuşmazlıkları ile yabancı kararların Türkiye’deki etkisi.', services: 'Boşanma · Tanıma-tenfiz · Mal rejimi' },
+  { title: 'İcra ve İflas Hukuku', summary: 'Alacakların takibi ve ticari uyuşmazlıklarda hukuki süreç yönetimi.', services: 'İcra takibi · İtiraz · İflas süreçleri' },
+  { title: 'İş Hukuku', summary: 'İş ilişkilerinin kurulması, sürdürülmesi ve uyuşmazlıkların değerlendirilmesi.', services: 'İş sözleşmeleri · Arabuluculuk · Dava takibi' },
+];
+
+const principles = ['Gizlilik ve sır saklama', 'Ön analiz ve şeffaflık', 'Düzenli raporlama ve bilgilendirme', 'Uluslararası hizmet yaklaşımı', 'Çıkar çatışması kontrolü'];
+
+const faqs = [
+  ['Yabancılar Türkiye’de mülk edinebilir mi?', 'Mülk edinimi; kişinin uyruğu, taşınmazın niteliği ve ilgili mevzuat çerçevesinde değerlendirilir. Somut işlem öncesinde güncel koşulların incelenmesi gerekir.'],
+  ['Yabancı mahkeme boşanma kararları Türkiye’de tanınır mı?', 'Yabancı mahkeme kararlarının Türkiye’de hüküm doğurması, kararın niteliğine ve gerekli tanıma veya tenfiz koşullarına bağlıdır.'],
+  ['Kira tespit veya tahliye sürecinde arabuluculuk gerekli midir?', 'Uyuşmazlığın türüne göre dava öncesi arabuluculuk şartı ve başvuru yolu değişebilir. Süreç, somut kira ilişkisine göre değerlendirilmelidir.'],
+  ['Şirketler sürekli hukuki danışmanlık alabilir mi?', 'Şirketlerin sözleşme, yönetim, uyuşmazlık ve günlük operasyon ihtiyaçlarına uygun sürekli danışmanlık modelleri değerlendirilebilir.'],
+];
 
 function Mark({ children }: { children: ReactNode }) {
   return <span className="landing-mark"><Check size={11} strokeWidth={2.5} />{children}</span>;
@@ -69,12 +89,29 @@ function CalendarVisual() {
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [formSent, setFormSent] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const closeMenu = () => setMenuOpen(false);
+
+  const validateForm = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const name = (fd.get('name') as string || '').trim();
+    const phone = (fd.get('phone') as string || '').trim();
+    const email = (fd.get('email') as string || '').trim();
+    const message = (fd.get('message') as string || '').trim();
+    const errors: Record<string, string> = {};
+    if (!name) errors.name = 'Ad Soyad gerekli';
+    if (!phone && !email) errors.contact = 'Telefon veya E-posta gerekli';
+    if (!message) errors.message = 'Mesaj gerekli';
+    setFormErrors(errors);
+    if (Object.keys(errors).length === 0) setFormSent(true);
+  };
   return <div className="landing-page">
-    <header className="landing-nav"><Link href="/" className="landing-logo"><span><Scale size={17} /></span>Hukuk<em>AI</em></Link><nav className={menuOpen ? 'open' : ''}><a href="#urun" onClick={closeMenu}>Ürün</a><a href="#dava-yonetimi" onClick={closeMenu}>Dava Yönetimi</a><a href="#kaynaklar" onClick={closeMenu}>Kaynaklar</a><a href="#takvim" onClick={closeMenu}>Takvim</a><a href="#mobil" onClick={closeMenu}>Mobil</a><Link href="/app" onClick={closeMenu} className="nav-demo-mobile">Demoyu İncele <ArrowRight size={14} /></Link></nav><Link href="/app" className="nav-cta">Demoyu İncele <ArrowRight size={14} /></Link><button className="menu-toggle" onClick={() => setMenuOpen(v => !v)} aria-label="Menüyü aç veya kapat">{menuOpen ? <X /> : <Menu />}</button></header>
+    <header className="landing-nav"><Link href="/" className="landing-logo"><span><Scale size={17} /></span>Hukuk<em>AI</em></Link><nav className={menuOpen ? 'open' : ''}><a href="#urun" onClick={closeMenu}>Ürün</a><a href="#dava-yonetimi" onClick={closeMenu}>Dava Yönetimi</a><a href="#hizmet-alanlari" onClick={closeMenu}>Hizmet Alanları</a><a href="#hakkinda" onClick={closeMenu}>Hakkında</a><a href="#duyurular" onClick={closeMenu}>Duyurular</a><a href="#iletisim" onClick={closeMenu}>İletişim</a><Link href="/login" onClick={closeMenu} className="nav-demo-mobile">Demoyu İncele <ArrowRight size={14} /></Link></nav><Link href="/login" className="nav-cta">Demoyu İncele <ArrowRight size={14} /></Link><button className="menu-toggle" onClick={() => setMenuOpen(v => !v)} aria-label="Menüyü aç veya kapat">{menuOpen ? <X /> : <Menu />}</button></header>
 
     <main>
-      <section className="hero-section"><div className="hero-copy"><p className="landing-kicker"><span>01</span>HUKUK ÇALIŞMA SİSTEMİ</p><h1>Dava, belge, emsal ve süre yönetimini <i>tek çalışma alanında</i> birleştirin.</h1><p className="hero-description">HukukAI; dava yönetimini, belge ve delil analizini, emsal araştırmasını, mevzuat takibini ve süre yönetimini tek bir kurumsal sistemde birleştirir.</p><div className="hero-actions"><Link href="/app" className="button-primary">Demoyu İncele <ArrowRight size={16} /></Link><a href="#nasil-calisir" className="button-secondary">Nasıl Çalışır? <ChevronDown size={15} /></a></div><p className="trust-line"><span /> Kurgusal demo dosyaları <i>·</i> Doğrulanmış kamu kaynakları</p></div><div className="hero-visual"><HeroSimulation /></div></section>
+      <section className="hero-section"><div className="hero-copy"><p className="landing-kicker"><span>01</span>HUKUK ÇALIŞMA SİSTEMİ</p><h1>Dava, belge, emsal ve süre yönetimini <i>tek çalışma alanında</i> birleştirin.</h1><p className="hero-description">HukukAI; dava yönetimini, belge ve delil analizini, emsal araştırmasını, mevzuat takibini ve süre yönetimini tek bir kurumsal sistemde birleştirir.</p><div className="hero-actions"><Link href="/login" className="button-primary">Demoyu İncele <ArrowRight size={16} /></Link><a href="#nasil-calisir" className="button-secondary">Nasıl Çalışır? <ChevronDown size={15} /></a></div><p className="trust-line"><span /> Kurgusal demo dosyaları <i>·</i> Doğrulanmış kamu kaynakları</p></div><div className="hero-visual"><HeroSimulation /></div></section>
 
       <section className="principle-section" id="nasil-calisir"><SectionIntro number="02" eyebrow="ÇALIŞMA PRENSİBİ" title={<>Dosya merkezli <i>çalışma.</i></>} copy="Her dava; belgeleri, delilleri, araştırmaları, duruşmaları, süreleri ve hukuki değerlendirmeleriyle tek bir çalışma alanında tutulur." centered /><div className="case-architecture">{['Dava Dosyası', 'Belgeler', 'Deliller', 'Emsaller', 'Mevzuat', 'Süreler', 'Taslaklar'].map((item, i) => <div key={item} className={i === 0 ? 'architecture-root' : ''}><span>{String(i + 1).padStart(2, '0')}</span>{item}{i < 6 && <b>→</b>}</div>)}</div></section>
 
@@ -94,14 +131,143 @@ export function LandingPage() {
 
       <section className="team-section"><div><SectionIntro number="10" eyebrow="EKİP ÇALIŞMASI" title={<>Dosya yalnızca <i>bir kişide kalmaz.</i></>} copy="Dosya üzerindeki güncellemeler, sorumluluklar ve inceleme notları aynı çalışma bağlamında kalır." /><div className="team-people"><div className="lead-lawyer"><span>BA</span><div><b>Av. Behçet Alp</b><small>Dosya Sorumlusu</small></div></div><div className="neutral-lawyers"><span><i>Ç</i> Çalışma Arkadaşı <small>Avukat</small></span><span><i>Ç</i> Çalışma Arkadaşı <small>Avukat</small></span></div></div></div><div className="activity-feed"><p>GÜNCEL HAREKETLER</p>{['Bilirkişi raporu inceleme notu eklendi', 'Emsal araştırması güncellendi', 'Duruşma hazırlık notu eklendi'].map((item, i) => <div key={item}><span>{['09:14', '09:21', '09:32'][i]}</span><i /><b>{item}</b></div>)}</div></section>
 
-      <section className="mobile-section" id="mobil"><div className="mobile-copy"><SectionIntro number="11" eyebrow="MOBİL DENEYİM" title={<>Ofiste, duruşma öncesinde <i>veya yolda.</i></>} copy="Dosya önceliklerini, yaklaşan süreleri ve doğrulanmış kaynak kayıtlarını gerektiğinde yanınızda görün." /><Link href="/app" className="text-link">Demo çalışma alanını aç <ArrowRight size={16} /></Link></div><div className="phone"><div className="phone-island" /><div className="phone-screen"><div className="phone-head"><span>09:41</span><b>HukukAI</b><i>•••</i></div><p>DAVA DOSYASI</p><h3>2026/145</h3><span>İşçilik Alacağı</span><div className="phone-alert"><small>SON SÜRE · 02 EYL</small><b>Bilirkişi raporuna itiraz</b></div><div className="phone-precedent"><small>DOĞRULANMIŞ EMSAL</small><b>Yargıtay 9. HD</b><span>E. 2023/7974 · K. 2023/11786</span></div><div className="phone-agenda"><small>BUGÜNÜN GÜNDEMİ</small><b>Rapor inceleme</b><span>Takvim · 14:00</span></div></div></div></section>
+      <section className="mobile-section" id="mobil"><div className="mobile-copy"><SectionIntro number="11" eyebrow="MOBİL DENEYİM" title={<>Ofiste, duruşma öncesinde <i>veya yolda.</i></>} copy="Dosya önceliklerini, yaklaşan süreleri ve doğrulanmış kaynak kayıtlarını gerektiğinde yanınızda görün." /><Link href="/login" className="text-link">Demo çalışma alanını aç <ArrowRight size={16} /></Link></div><div className="phone"><div className="phone-island" /><div className="phone-screen"><div className="phone-head"><span>09:41</span><b>HukukAI</b><i>•••</i></div><p>DAVA DOSYASI</p><h3>2026/145</h3><span>İşçilik Alacağı</span><div className="phone-alert"><small>SON SÜRE · 02 EYL</small><b>Bilirkişi raporuna itiraz</b></div><div className="phone-precedent"><small>DOĞRULANMIŞ EMSAL</small><b>Yargıtay 9. HD</b><span>E. 2023/7974 · K. 2023/11786</span></div><div className="phone-agenda"><small>BUGÜNÜN GÜNDEMİ</small><b>Rapor inceleme</b><span>Takvim · 14:00</span></div></div></div></section>
 
       <section className="trust-section"><SectionIntro number="12" eyebrow="GÜVEN İLKELERİ" title={<>Hukuki çalışmada güven, <i>özellikten önce gelir.</i></>} centered /><div className="trust-grid">{['Kaynak doğrulama', 'Avukat kontrolü', 'Demo ve gerçek veri ayrımı', 'Kaynak provenance', 'Kurumsal mimari', 'Yetkilendirme için hazırlanmış yapı'].map(item => <div key={item}><ShieldCheck size={16} /><span>{item}</span></div>)}</div></section>
 
       <section className="workflow-section"><div className="workflow-heading"><p className="landing-kicker"><span>13</span>GÜNLÜK AKIŞ</p><h2>Bir çalışma gününün <i>dosya izi.</i></h2><small>Demo simülasyonu</small></div><div className="workflow-line">{[['09:10', 'Yeni belge eklendi'], ['09:14', 'Delil matrisi güncellendi'], ['09:21', 'Emsal araştırması tamamlandı'], ['09:32', 'Yaklaşan süre takvime işlendi'], ['09:45', 'Taslak avukat incelemesine hazır']].map(([time, event], i) => <div key={time}><span>{time}</span><i>{i + 1}</i><p>{event}</p></div>)}</div></section>
 
-      <section className="final-cta"><p className="landing-kicker"><span>14</span>HUKUKAI DEMO</p><h2>Hukuk çalışmalarını <i>tek bir sistemde görün.</i></h2><p>HukukAI demosunda dava yönetimini, belge analizini, emsal araştırmasını ve süre takibini birlikte inceleyin.</p><div><Link href="/app" className="button-primary">Demoyu Aç <ArrowRight size={16} /></Link><Link href={caseHref} className="button-secondary">2026/145 Dosyasını İncele <ArrowRight size={15} /></Link></div></section>
+      <section className="profile-section" id="hakkinda"><div className="profile-monogram"><span>BA</span><p>1982<br />Kuşadası</p></div><div><SectionIntro number="14" eyebrow="AVUKAT PROFİLİ" title={<>Av. Behçet Alp</>} copy="Kurucu Ortak / Avukat & Hukuki Danışman" /><div className="profile-biography"><p>İstanbul Kültür Üniversitesi Hukuk Fakültesi’nden 2004 yılında mezun oldu. 2007 yılında Kuşadası’nda kendi hukuk bürosunu kurdu.</p><p>Mesleki faaliyetlerini Alp Hukuk Bürosu ve B&B Avukatlık Ortaklığı bünyesinde; yerel ve uluslararası müvekkillerle yürütmektedir.</p></div><a href="#iletisim" className="text-link profile-link">İletişime geçin <ArrowRight size={16} /></a></div></section>
+
+      <section className="practice-section" id="hizmet-alanlari"><SectionIntro number="15" eyebrow="HİZMET ALANLARI" title={<>Hukuki ihtiyaçlara <i>odaklı yaklaşım.</i></>} copy="Her çalışma alanı, somut ihtiyacın kapsamına ve izlenecek hukuki sürece göre değerlendirilir." /><div className="practice-grid">{practiceAreas.map((area, index) => <details key={area.title} className="practice-card"><summary><span>{String(index + 1).padStart(2, '0')}</span><h3>{area.title}</h3><ChevronDown size={17} /></summary><p>{area.summary}</p><small>{area.services}</small></details>)}</div></section>
+
+      <section className="principles-section"><div className="principles-intro"><SectionIntro number="16" eyebrow="ÇALIŞMA İLKELERİMİZ" title={<>Özenli, şeffaf ve <i>dosya odaklı.</i></>} copy="Hukuki hizmetin her aşamasında iletişim ve süreç yönetimine ilişkin temel yaklaşım." /></div><div className="principles-list">{principles.map((principle, index) => <div key={principle}><span>{String(index + 1).padStart(2, '0')}</span><h3>{principle}</h3><Check size={16} /></div>)}</div></section>
+
+      <section className="announcements-section" id="duyurular"><SectionIntro number="17" eyebrow="DUYURULAR" title={<>Güncel <i>bilgilendirmeler.</i></>} /><div className="announcement-list">{demoAnnouncements.filter((item) => item.status === 'published').map((item) => <article key={item.id}><p>{item.category}</p><h3>{item.title}</h3><span>{item.excerpt}</span><button type="button" aria-label={`${item.title} duyurusunu oku`}>Duyuruyu Oku <ArrowRight size={15} /></button></article>)}</div></section>
+
+      <section className="faq-section"><SectionIntro number="18" eyebrow="SIKÇA SORULANLAR" title={<>İlk çerçeve için <i>bilgilendirme.</i></>} copy="Genel bilgi amaçlıdır; somut olayın koşullarına göre hukuki değerlendirme değişebilir." centered /><div className="faq-list">{faqs.map(([question, answer], index) => <details key={question}><summary><span>{String(index + 1).padStart(2, '0')}</span><h3>{question}</h3><ChevronDown size={17} /></summary><p>{answer}</p></details>)}</div></section>
+
+      <section className="contact-section" id="iletisim">
+        <SectionIntro number="19" eyebrow="İLETİŞİM" title={<>Av. Behçet Alp ile <i>iletişime geçin.</i></>} copy="HukukAI demosunu incelemek, çalışma modelini değerlendirmek veya hukuk bürosu ihtiyaçlarını konuşmak için iletişime geçebilirsiniz." />
+        <div className="contact-grid">
+          <div className="contact-card">
+            <div className="contact-card-header">
+              <div className="contact-avatar">BA</div>
+              <div>
+                <h3>Avukat Behçet Alp</h3>
+                <p>Kuşadası / Aydın</p>
+              </div>
+            </div>
+            <address className="contact-details">
+              <div className="contact-row">
+                <MapPin size={15} />
+                <span>İnönü Bulv. Ege İş Hanı 83/9<br />Kuşadası / Aydın</span>
+              </div>
+              <div className="contact-row">
+                <Phone size={15} />
+                <a href="tel:+902566142233" aria-label="Telefon: (0256) 614 22 33">(0256) 614 22 33</a>
+              </div>
+              <div className="contact-row">
+                <Globe size={15} />
+                <a href="http://www.behcetalp.av.tr/" target="_blank" rel="noopener noreferrer" aria-label="Web sitesini aç (yeni sekme)">behcetalp.av.tr <ExternalLink size={11} /></a>
+              </div>
+              <div className="contact-row contact-rating">
+                <Star size={15} />
+                <span><strong>5,0</strong> · 11 Google yorumu</span>
+              </div>
+            </address>
+            <div className="contact-actions">
+              <a href="https://www.google.com/maps/place//data=!4m2!3m1!1s0x14bea92e87fa652f:0xb952932c874c7131?sa=X&ved=1t:8290&ictx=111" target="_blank" rel="noopener noreferrer" className="button-primary contact-btn" aria-label="Google Haritalar'da yol tarifi al (yeni sekme)">
+                <MapPin size={15} /> Yol Tarifi Al
+              </a>
+              <a href="tel:+902566142233" className="button-secondary contact-btn" aria-label="Telefon et">
+                <Phone size={15} /> Ara
+              </a>
+              <a href="http://www.behcetalp.av.tr/" target="_blank" rel="noopener noreferrer" className="button-secondary contact-btn" aria-label="Web sitesini aç (yeni sekme)">
+                <Globe size={15} /> Web Sitesini Aç
+              </a>
+            </div>
+            <div className="contact-map-card">
+              <div className="contact-map-visual">
+                <MapPin size={24} />
+                <span>Kuşadası / Aydın</span>
+              </div>
+              <a href="https://www.google.com/maps/place//data=!4m2!3m1!1s0x14bea92e87fa652f:0xb952932c874c7131?sa=X&ved=1t:8290&ictx=111" target="_blank" rel="noopener noreferrer" className="map-link">
+                Yol Tarifi Al <ArrowUpRight size={13} />
+              </a>
+            </div>
+          </div>
+          <div className="contact-form-wrap">
+            {formSent ? (
+              <div className="contact-form-success">
+                <Check size={20} />
+                <p>Demo iletişim formu — gerçek gönderim altyapısı henüz bağlı değildir.</p>
+                <span>Form içeriğiniz korunmuştur. Teşekkürler.</span>
+              </div>
+            ) : (
+              <form onSubmit={validateForm} noValidate className="contact-form">
+                <div className="form-field">
+                  <label htmlFor="contact-name">Ad Soyad</label>
+                  <input id="contact-name" name="name" type="text" required placeholder="Adınız Soyadınız" />
+                  {formErrors.name && <span className="form-error" role="alert">{formErrors.name}</span>}
+                </div>
+                <div className="form-row-2">
+                  <div className="form-field">
+                    <label htmlFor="contact-phone">Telefon</label>
+                    <input id="contact-phone" name="phone" type="tel" placeholder="(0XXX) XXX XX XX" />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="contact-email">E-posta</label>
+                    <input id="contact-email" name="email" type="email" placeholder="ornek@ornek.com" />
+                  </div>
+                </div>
+                {formErrors.contact && <span className="form-error form-error-global" role="alert">{formErrors.contact}</span>}
+                <div className="form-field">
+                  <label htmlFor="contact-subject">Konu</label>
+                  <select id="contact-subject" name="subject" defaultValue="">
+                    <option value="" disabled>Seçiniz</option>
+                    <option>HukukAI Demo</option>
+                    <option>Hukuki Hizmet</option>
+                    <option>Randevu Talebi</option>
+                    <option>Diğer</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label htmlFor="contact-message">Mesaj</label>
+                  <textarea id="contact-message" name="message" rows={4} required placeholder="Mesajınızı yazın" />
+                  {formErrors.message && <span className="form-error" role="alert">{formErrors.message}</span>}
+                </div>
+                <button type="submit" className="button-primary contact-submit">
+                  <Send size={14} /> Mesaj Gönder
+                </button>
+                <p className="form-privacy">Bu form demo amaçlıdır. Gerçek iletişim gönderimi henüz aktif değildir.</p>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="final-cta"><p className="landing-kicker"><span>20</span>HUKUKAI DEMO</p><h2>Hukuk çalışmalarını <i>tek bir sistemde görün.</i></h2><p>HukukAI demosunda dava yönetimini, belge analizini, emsal araştırmasını ve süre takibini birlikte inceleyin.</p><div><Link href="/login" className="button-primary">Demoyu Aç <ArrowRight size={16} /></Link><Link href={caseHref} className="button-secondary">2026/145 Dosyasını İncele <ArrowRight size={15} /></Link></div></section>
+      <aside className="legal-notice" aria-label="Hukuki bilgilendirme"><ShieldCheck size={16} /><p>Bu sitedeki içerikler genel bilgilendirme amaçlıdır ve hukuki görüş yerine geçmez. Site üzerinden bilgi paylaşılması tek başına avukat-müvekkil ilişkisi oluşturmaz.</p></aside>
     </main>
-    <footer className="landing-footer"><Link href="/" className="landing-logo"><span><Scale size={15} /></span>Hukuk<em>AI</em></Link><p>Kurgusal demo deneyimi · Hukuki görüş veya tavsiye değildir.</p><Link href="/app">Çalışma alanı <ArrowRight size={14} /></Link></footer>
+    <footer className="landing-footer">
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <Link href="/" className="landing-logo"><span><Scale size={15} /></span>Hukuk<em>AI</em></Link>
+          <p>Avukat Behçet Alp</p>
+          <address className="footer-address">
+            İnönü Bulv. Ege İş Hanı 83/9, Kuşadası / Aydın<br />
+            <a href="tel:+902566142233" aria-label="Telefon">(0256) 614 22 33</a> · <a href="http://www.behcetalp.av.tr/" target="_blank" rel="noopener noreferrer" aria-label="Web sitesi">behcetalp.av.tr</a>
+          </address>
+        </div>
+        <nav className="footer-links" aria-label="Alt menü">
+          <a href="#urun">Ürün</a>
+          <a href="#iletisim">İletişim</a>
+          <Link href="/login">Demoyu İncele</Link>
+          <a href="#">Ana Sayfa</a>
+        </nav>
+        <p className="footer-copy">Kurgusal demo deneyimi · Hukuki görüş veya tavsiye değildir.</p>
+      </div>
+    </footer>
   </div>;
 }

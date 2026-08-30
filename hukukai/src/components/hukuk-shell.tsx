@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
+import { clearDemoSession } from '@/lib/demo-auth';
 import {
   Archive,
   BriefcaseBusiness,
@@ -8,7 +9,9 @@ import {
   FileText,
   FolderSearch,
   Gavel,
+  House,
   LayoutDashboard,
+  LogOut,
   Menu,
   Moon,
   PanelLeftClose,
@@ -49,7 +52,13 @@ const utilityNav: NavItem[] = [
 ];
 
 function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  const logout = () => {
+    // DEMO AUTH ONLY — replace with server-side auth later.
+    clearDemoSession();
+    setLocation('/login');
+  };
   const active = item.href === '/app' ? location === '/app' : location.startsWith(item.href);
   const Icon = item.icon;
   return (
@@ -75,12 +84,14 @@ function Sidebar({
   onCollapse,
   onNavigate,
   onCloseMobile,
+  onLogout,
 }: {
   collapsed: boolean;
   mobileOpen: boolean;
   onCollapse: () => void;
   onNavigate?: () => void;
   onCloseMobile: () => void;
+  onLogout: () => void;
 }) {
   return (
     <aside
@@ -125,6 +136,10 @@ function Sidebar({
       </nav>
 
       <div className={`border-t border-sidebar-border px-2.5 py-3 ${collapsed ? 'md:hidden' : ''}`}>
+        <Link href="/" onClick={onNavigate} className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-[14px] font-medium text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground md:min-h-[40px] md:gap-2.5 md:px-2.5 md:text-[13px]">
+          <House size={16} className="text-sidebar-foreground/45" />
+          Ana Sayfaya Dön
+        </Link>
         <Link href="/ayarlar" onClick={onNavigate} data-testid="link-nav-ayarlar" className="flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-[14px] font-medium text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground md:min-h-[40px] md:gap-2.5 md:px-2.5 md:text-[13px]">
           <Settings2 size={16} className="text-sidebar-foreground/45" />
           Ayarlar
@@ -137,6 +152,10 @@ function Sidebar({
           </div>
           <ChevronRight size={13} className="text-sidebar-foreground/30" />
         </div>
+        <button onClick={onLogout} className="mt-2 flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2 text-left text-[14px] font-medium text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground md:min-h-[40px] md:gap-2.5 md:px-2.5 md:text-[13px]" data-testid="button-logout">
+          <LogOut size={16} className="text-sidebar-foreground/45" />
+          Çıkış Yap
+        </button>
       </div>
     </aside>
   );
@@ -145,7 +164,13 @@ function Sidebar({
 export function HukukShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  const logout = () => {
+    // DEMO AUTH ONLY — replace with server-side auth later.
+    clearDemoSession();
+    setLocation('/login');
+  };
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
@@ -175,6 +200,7 @@ export function HukukShell({ children }: { children: ReactNode }) {
         onCollapse={() => setCollapsed((v) => !v)}
         onNavigate={() => setSidebarOpen(false)}
         onCloseMobile={() => setSidebarOpen(false)}
+        onLogout={logout}
       />
 
       {sidebarOpen ? (
