@@ -5,14 +5,14 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { HukukShell } from '@/components/hukuk-shell';
+import { DashboardPage } from '@/pages/dashboard';
+import { CasesPage } from '@/pages/cases';
+import { ClientsPage } from '@/pages/clients';
 import {
   ArchivePage,
   AssistantPage,
   CalendarPage,
   CaseWorkspacePage,
-  CasesPage,
-  ClientsPage,
-  DashboardPage,
   DocumentsPage,
   DraftsPage,
   LegislationPage,
@@ -27,7 +27,14 @@ import {
   Router as WouterRouter,
 } from 'wouter';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function Router() {
   return (
