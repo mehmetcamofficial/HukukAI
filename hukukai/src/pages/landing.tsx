@@ -145,6 +145,8 @@ export function LandingPage() {
   const navRef = useRef<HTMLElement>(null);
   const closeMenu = () => { setMenuOpen(false); setOpenGroup(null); };
 
+  useEffect(() => { document.title = 'HukukAI — Hukuk Çalışma Sistemi'; }, []);
+
   useEffect(() => {
     const closeOnOutside = (event: MouseEvent) => {
       if (navRef.current && event.target instanceof Node && !navRef.current.contains(event.target)) setOpenGroup(null);
@@ -201,7 +203,7 @@ export function LandingPage() {
         <div className="landing-hub-meta"><div><p>HUKUKAI HAKKINDA</p><span>Ürün sahibi Mehmet Cam ile hukuki danışman Av. Behçet Alp’in rolleri açıkça ayrılmıştır.</span><Link href="/hakkinda">Hakkında sayfası <ArrowRight size={14} /></Link></div><div><p>İLETİŞİM</p><span>Demo, çalışma modeli veya hukuk bürosu ihtiyaçları için doğrudan iletişim bilgilerine ulaşın.</span><Link href="/iletisim">İletişim bilgileri <ArrowRight size={14} /></Link></div></div>
       </section>
 
-      <div className="home-detail-content" aria-hidden="true">
+      <div className="home-detail-content">
       <section className="sources-section" id="kaynaklar"><SectionIntro number="05" eyebrow="KAYNAK BÜTÜNLÜĞÜ" title={<>Kaynak ile yorum <i>birbirinden ayrılır.</i></>} copy="HukukAI, hukuki değerlendirmeleri resmî kaynaklardan ayrı gösterir. Emsal kararlar ve mevzuat kayıtları kaynak, tarih ve doğrulama durumu ile sunulur." centered /><div className="source-grid"><SourcePanel type="YARGITAY" title="Yargıtay 9. Hukuk Dairesi" detail="Fazla çalışma / bordro / ispat" href="https://www.alomaliye.com/2026/08/25/ucret-hesap-pusulasi-rehberi-2026/"><div className="ek-grid"><span>E. <b>2023/7974</b></span><span>K. <b>2023/11786</b></span><span>Tarih <b>12.09.2023</b></span></div><Mark>DOĞRULANDI</Mark></SourcePanel><SourcePanel type="MEVZUAT" title="4857 Sayılı İş Kanunu" detail="Madde 41 · Fazla çalışma ücreti" href="https://www.mevzuat.gov.tr/MevzuatMetin/1.5.4857.htm"><p className="law-summary">ÖZET · Haftalık kırk beş saati aşan çalışmalar için ücret hesabına ilişkin hüküm.</p><Mark>DOĞRULANDI</Mark></SourcePanel></div><div className="gazette-strip"><div><p>RESMÎ GAZETE ENTEGRASYONU</p><h3>Kamu kaynaklarını dosya bağlamında izlemek için hazırlanmış yapı.</h3></div><span><ShieldCheck size={17} /> Kaynak ve erişim durumu görünür kılınır</span></div></section>
 
       <section className="research-section" id="emsal-kararlar"><div className="research-head"><SectionIntro number="06" eyebrow="EMSAL ARAŞTIRMASI" title={<>Emsal araştırmasını dosyanın <i>bağlamından çıkarın.</i></>} copy="Arama sonuçlarını yalnızca listelemeyin; dosyanın delilleri ve hukuki sorusuyla birlikte değerlendirin." /><div className="research-query"><Search size={16} /><span>“Fazla çalışma — imzalı bordro — tanık delili”</span></div></div><div className="research-results">{[['LEHE', 'Yargıtay 9. HD', 'E. 2023/7974 · K. 2023/11786', 'Sembolik tahakkuklar ve mahsup'], ['ALEYHE', 'Yargıtay 9. HD', 'E. 2024/7636 · K. 2024/12837', 'İşyeri kayıtları ve tanık değerlendirmesi'], ['KARMA', '4857 Sayılı İş Kanunu', 'Madde 41', 'Fazla çalışma hesabı']].map(([type, court, id, principle]) => <article key={type}><span className={`research-type ${type.toLocaleLowerCase('tr-TR')}`}>{type}</span><h3>{court}</h3><p>{id}</p><strong>{principle}</strong><Mark>DOĞRULANDI</Mark></article>)}</div></section>
@@ -400,10 +402,10 @@ export function LandingPage() {
           </div>
         </div>
         <nav className="footer-links" aria-label="Alt menü">
-          <a href="#urun">Ürün</a>
-          <a href="#iletisim">İletişim</a>
+          <Link href="/urun">Ürün</Link>
+          <Link href="/iletisim">İletişim</Link>
           <Link href="/login">Demoyu İncele</Link>
-          <a href="#">Ana Sayfa</a>
+          <Link href="/">Ana Sayfa</Link>
         </nav>
         <p className="footer-copy">Kurgusal demo deneyimi · Hukuki görüş veya tavsiye değildir.</p>
       </div>
