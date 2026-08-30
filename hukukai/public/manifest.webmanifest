@@ -1,7 +1,7 @@
 {
   "name": "HukukAI",
   "short_name": "HukukAI",
-  "description": "Türk hukukçular için kaynak doğrulamalı çalışma alanı.",
+  "description": "Hukuk çalışma ve dava yönetim sistemi.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f5ef",

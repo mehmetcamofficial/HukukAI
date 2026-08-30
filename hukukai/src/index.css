@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -58,7 +58,6 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: var(--app-font-sans);
-  --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -79,52 +78,51 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 42 35% 96%;
-  --foreground: 218 34% 17%;
-  --border: 214 24% 86%;
-  --card: 43 33% 98%;
-  --card-foreground: 218 34% 17%;
-  --card-border: 214 24% 86%;
-  --sidebar: 218 34% 17%;
-  --sidebar-foreground: 42 35% 96%;
-  --sidebar-border: 218 25% 27%;
-  --sidebar-primary: 165 38% 44%;
-  --sidebar-primary-foreground: 218 34% 17%;
-  --sidebar-accent: 218 26% 23%;
-  --sidebar-accent-foreground: 42 35% 96%;
-  --sidebar-ring: 165 38% 44%;
-  --popover: 43 33% 98%;
-  --popover-foreground: 218 34% 17%;
-  --popover-border: 214 24% 86%;
-  --primary: 165 38% 38%;
-  --primary-foreground: 42 35% 96%;
-  --secondary: 36 26% 90%;
-  --secondary-foreground: 218 34% 17%;
-  --muted: 39 21% 91%;
-  --muted-foreground: 216 16% 46%;
-  --accent: 29 78% 62%;
-  --accent-foreground: 218 34% 17%;
-  --destructive: 2 63% 49%;
-  --destructive-foreground: 42 35% 96%;
-  --input: 214 24% 80%;
-  --ring: 165 38% 38%;
-  --chart-1: 165 38% 38%;
-  --chart-2: 29 78% 62%;
-  --chart-3: 218 34% 35%;
-  --chart-4: 2 63% 49%;
-  --chart-5: 43 57% 50%;
-  --app-font-sans: 'Manrope', sans-serif;
-  --app-font-serif: 'Newsreader', Georgia, serif;
-  --app-font-mono: 'DM Mono', monospace;
-  --radius: 0.75rem;
-  --shadow-2xs: 0 1px 2px hsl(218 34% 17% / 0.03);
-  --shadow-xs: 0 2px 5px hsl(218 34% 17% / 0.04);
-  --shadow-sm: 0 5px 14px hsl(218 34% 17% / 0.05);
-  --shadow: 0 8px 20px hsl(218 34% 17% / 0.07);
-  --shadow-md: 0 12px 28px hsl(218 34% 17% / 0.09);
-  --shadow-lg: 0 18px 42px hsl(218 34% 17% / 0.12);
-  --shadow-xl: 0 24px 60px hsl(218 34% 17% / 0.15);
-  --shadow-2xl: 0 30px 80px hsl(218 34% 17% / 0.2);
+  --background: 0 0% 97%;
+  --foreground: 220 15% 15%;
+  --border: 220 12% 89%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 15%;
+  --card-border: 220 12% 89%;
+  --sidebar: 222 25% 14%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 222 18% 22%;
+  --sidebar-primary: 218 55% 48%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 222 20% 20%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 218 55% 48%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 15% 15%;
+  --popover-border: 220 12% 89%;
+  --primary: 218 45% 44%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 10% 94%;
+  --secondary-foreground: 220 15% 20%;
+  --muted: 220 10% 96%;
+  --muted-foreground: 220 10% 42%;
+  --accent: 218 45% 44%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 2 62% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 220 12% 84%;
+  --ring: 218 45% 44%;
+  --chart-1: 218 45% 44%;
+  --chart-2: 220 10% 42%;
+  --chart-3: 218 55% 48%;
+  --chart-4: 2 62% 46%;
+  --chart-5: 220 8% 55%;
+  --app-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --app-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius: 6px;
+  --shadow-2xs: 0 1px 2px hsl(220 15% 15% / 0.02);
+  --shadow-xs: 0 1px 3px hsl(220 15% 15% / 0.03);
+  --shadow-sm: 0 1px 4px hsl(220 15% 15% / 0.04);
+  --shadow: 0 2px 6px hsl(220 15% 15% / 0.05);
+  --shadow-md: 0 2px 8px hsl(220 15% 15% / 0.06);
+  --shadow-lg: 0 4px 12px hsl(220 15% 15% / 0.07);
+  --shadow-xl: 0 4px 16px hsl(220 15% 15% / 0.08);
+  --shadow-2xl: 0 8px 24px hsl(220 15% 15% / 0.1);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -190,42 +188,42 @@
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
 
-  --background: 221 28% 13%;
-  --foreground: 42 35% 96%;
-  --border: 218 22% 27%;
-  --card: 220 27% 17%;
-  --card-foreground: 42 35% 96%;
-  --card-border: 218 22% 27%;
-  --sidebar: 222 32% 10%;
-  --sidebar-foreground: 42 35% 96%;
-  --sidebar-border: 218 22% 27%;
-  --sidebar-primary: 165 38% 51%;
-  --sidebar-primary-foreground: 222 32% 10%;
-  --sidebar-accent: 220 27% 17%;
-  --sidebar-accent-foreground: 42 35% 96%;
-  --sidebar-ring: 165 38% 51%;
-  --popover: 220 27% 17%;
-  --popover-foreground: 42 35% 96%;
-  --popover-border: 218 22% 27%;
-  --primary: 165 38% 51%;
-  --primary-foreground: 222 32% 10%;
-  --secondary: 218 22% 27%;
-  --secondary-foreground: 42 35% 96%;
-  --muted: 220 22% 22%;
-  --muted-foreground: 218 15% 68%;
-  --accent: 29 78% 62%;
-  --accent-foreground: 222 32% 10%;
-  --destructive: 2 63% 59%;
-  --destructive-foreground: 42 35% 96%;
+  --background: 222 25% 10%;
+  --foreground: 0 0% 96%;
+  --border: 222 16% 24%;
+  --card: 222 20% 14%;
+  --card-foreground: 0 0% 96%;
+  --card-border: 222 16% 24%;
+  --sidebar: 224 30% 8%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 222 16% 24%;
+  --sidebar-primary: 218 55% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 222 20% 16%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 218 55% 55%;
+  --popover: 222 20% 14%;
+  --popover-foreground: 0 0% 96%;
+  --popover-border: 222 16% 24%;
+  --primary: 218 55% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 16% 22%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 222 14% 18%;
+  --muted-foreground: 220 10% 64%;
+  --accent: 218 55% 55%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 2 62% 55%;
+  --destructive-foreground: 0 0% 100%;
 
   /* Used as the border around inputs. Dark mode: Should be a border that is light enough to have high contrast when rendered on a --card background. More contrast than standard --border */
-  --input: 218 22% 34%;
-  --ring: 165 38% 51%;
-  --chart-1: 165 38% 51%;
-  --chart-2: 29 78% 62%;
-  --chart-3: 218 34% 66%;
-  --chart-4: 2 63% 59%;
-  --chart-5: 43 57% 60%;
+  --input: 222 16% 30%;
+  --ring: 218 55% 55%;
+  --chart-1: 218 55% 55%;
+  --chart-2: 220 10% 58%;
+  --chart-3: 218 60% 60%;
+  --chart-4: 2 62% 55%;
+  --chart-5: 220 8% 60%;
 
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
@@ -262,21 +260,38 @@
   body { min-width: 320px; }
   button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
   ::selection { background: hsl(var(--primary) / .18); color: hsl(var(--foreground)); }
+
+  /* Focus visible for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer utilities {
   .workspace-grid {
-    background-image: linear-gradient(hsl(var(--foreground) / .035) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--foreground) / .035) 1px, transparent 1px);
-    background-size: 28px 28px;
+    background: none;
   }
-  .serif { font-family: var(--app-font-serif); }
-  .mono { font-family: var(--app-font-mono); letter-spacing: -0.025em; }
-  .eyebrow { font-family: var(--app-font-mono); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
-  .animate-in { animation: rise-in .45s cubic-bezier(.22,1,.36,1) both; }
-  .animate-in-delay-1 { animation-delay: .06s; }
-  .animate-in-delay-2 { animation-delay: .12s; }
-  .animate-in-delay-3 { animation-delay: .18s; }
+  .mono { font-family: var(--app-font-mono); letter-spacing: -0.02em; }
+  .eyebrow { font-family: var(--app-font-mono); text-transform: uppercase; letter-spacing: .1em; font-size: 11px; }
+  .animate-in { animation: rise-in .3s cubic-bezier(.22,1,.36,1) both; }
+  .animate-in-delay-1 { animation-delay: .04s; }
+  .animate-in-delay-2 { animation-delay: .08s; }
+  .animate-in-delay-3 { animation-delay: .12s; }
   .shimmer { background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--card)) 50%, hsl(var(--muted)) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 }
 
