@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BriefcaseBusiness,
   CalendarDays,
+  FileText,
   Gavel,
   ListChecks,
   Plus,
@@ -66,6 +67,8 @@ export function DashboardPage() {
       <div className="mb-5 flex flex-wrap gap-2">
         <QuickAction onClick={() => actions.newCase()} icon={<BriefcaseBusiness size={14} />}>Yeni Dava</QuickAction>
         <QuickAction onClick={() => actions.newTask()} icon={<ListChecks size={14} />}>Görev Ekle</QuickAction>
+        <QuickAction onClick={() => actions.newCalendarEvent()} icon={<CalendarDays size={14} />}>Duruşma / Süre Ekle</QuickAction>
+        <QuickAction onClick={() => actions.newDocument()} icon={<FileText size={14} />}>Belge Ekle</QuickAction>
         <QuickAction onClick={() => navigate('/takvim')} icon={<CalendarDays size={14} />}>Takvim</QuickAction>
         <QuickAction onClick={() => navigate('/emsal-kararlar')} icon={<Gavel size={14} />}>Emsal Ara</QuickAction>
       </div>

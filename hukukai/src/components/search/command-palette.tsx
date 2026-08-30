@@ -32,6 +32,9 @@ import {
 export interface CommandPaletteActions {
   newCase: () => void;
   newTask: () => void;
+  newCalendarEvent: () => void;
+  newDocument: () => void;
+  newDraft: () => void;
 }
 
 export interface CommandPaletteProps {
@@ -70,10 +73,11 @@ export function CommandPalette({ open, onOpenChange, actions }: CommandPalettePr
   const quickActions = [
     { id: 'qa-case', label: 'Yeni Dava', icon: BriefcaseBusiness, run: () => run(actions.newCase) },
     { id: 'qa-task', label: 'Yeni Görev', icon: ListChecks, run: () => run(actions.newTask) },
-    { id: 'qa-hearing', label: 'Duruşma / Süre — Takvim', icon: CalendarPlus, run: () => run(() => setLocation('/takvim')) },
-    { id: 'qa-doc', label: 'Belgeler', icon: FilePlus2, run: () => run(() => setLocation('/belgeler')) },
+    { id: 'qa-hearing', label: 'Duruşma / Süre Ekle', icon: CalendarPlus, run: () => run(actions.newCalendarEvent) },
+    { id: 'qa-doc', label: 'Belge Ekle', icon: FilePlus2, run: () => run(actions.newDocument) },
+    { id: 'qa-draft', label: 'Yeni Taslak', icon: ScrollText, run: () => run(actions.newDraft) },
     { id: 'qa-precedent', label: 'Emsal Ara', icon: Gavel, run: () => run(() => setLocation('/emsal-kararlar')) },
-    { id: 'qa-legislation', label: 'Mevzuat', icon: ScrollText, run: () => run(() => setLocation('/mevzuat')) },
+    { id: 'qa-legislation', label: 'Mevzuata Git', icon: ScrollText, run: () => run(() => setLocation('/mevzuat')) },
     { id: 'qa-calendar', label: 'Takvime Git', icon: CalendarDays, run: () => run(() => setLocation('/takvim')) },
     { id: 'qa-tasks', label: 'Görevlere Git', icon: ListChecks, run: () => run(() => setLocation('/gorevler')) },
     { id: 'qa-dashboard', label: 'Genel Bakışa Git', icon: LayoutDashboard, run: () => run(() => setLocation('/app')) },

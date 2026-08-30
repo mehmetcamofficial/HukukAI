@@ -179,3 +179,103 @@ test('deadline: byDeadlineUrgency sorts soonest first, undated last', () => {
   const sorted = [...dates].sort(byDeadlineUrgency);
   assert.deepEqual(sorted, ['2026-08-01', '2026-09-02', '2026-09-10', null]);
 });
+
+/* ----------------------- P5–P9 continuation coverage ---------------------- */
+
+test('repository: calendar event create / update / delete + case binding', () => {
+  const repo = createRepository();
+  const before = repo.getSnapshot().calendar.length;
+  const e = repo.createCalendarEvent({ title: 'Duruşma', eventType: 'durusma', date: '2026-09-20', caseId: PRIMARY_CASE_ID });
+  assert.equal(repo.getSnapshot().calendar.length, before + 1);
+  assert.equal(e.caseId, PRIMARY_CASE_ID);
+  assert.equal(repo.getSnapshot().activities[0].kind, 'calendar-event-created');
+
+  const upd = repo.updateCalendarEvent(e.id, { time: '10:30' });
+  assert.equal(upd?.time, '10:30');
+  assert.equal(repo.getSnapshot().activities[0].kind, 'calendar-event-updated');
+
+  repo.deleteCalendarEvent(e.id);
+  assert.equal(repo.getSnapshot().calendar.length, before);
+  assert.equal(repo.getSnapshot().activities[0].kind, 'calendar-event-deleted');
+});
+
+test('repository: timeline event mutation lifecycle', () => {
+  const repo = createRepository();
+  const before = repo.getSnapshot().timeline.length;
+  const ev = repo.createTimelineEvent({ caseId: PRIMARY_CASE_ID, date: '2026-07-01', title: 'Dilekçe verildi', eventType: 'islem' });
+  assert.equal(repo.getSnapshot().timeline.length, before + 1);
+  const upd = repo.updateTimelineEvent(ev.id, { title: 'Dilekçe verildi (revize)' });
+  assert.equal(upd?.title, 'Dilekçe verildi (revize)');
+  repo.deleteTimelineEvent(ev.id);
+  assert.equal(repo.getSnapshot().timeline.length, before);
+});
+
+test('repository: document create stores metadata only + update + delete', () => {
+  const repo = createRepository();
+  const doc = repo.createDocument({ name: 'Yeni Dilekçe', docType: 'dilekce', caseId: PRIMARY_CASE_ID, fileName: 'dilekce.pdf' });
+  assert.equal(doc.fileName, 'dilekce.pdf');
+  assert.equal(doc.verificationStatus, 'DEMO — YALNIZCA ÜST VERİ');
+  assert.ok(!('fileBytes' in doc));
+  const upd = repo.updateDocument(doc.id, { source: 'Müvekkil' });
+  assert.equal(upd?.source, 'Müvekkil');
+  repo.deleteDocument(doc.id);
+  assert.equal(repo.getSnapshot().documents.find((d) => d.id === doc.id), undefined);
+});
+
+test('repository: evidence relation update replaces supporting refs', () => {
+  const repo = createRepository();
+  const claim = repo.getSnapshot().evidence[0];
+  const updated = repo.updateEvidenceClaim(claim.id, {
+    supporting: [{ id: 'r-new', label: 'Yeni destekleyen delil', documentId: null }],
+    status: 'hazir',
+  });
+  assert.equal(updated?.supporting.length, 1);
+  assert.equal(updated?.supporting[0].label, 'Yeni destekleyen delil');
+  assert.equal(updated?.status, 'hazir');
+  assert.equal(repo.getSnapshot().activities[0].kind, 'evidence-updated');
+});
+
+test('repository: research bookmark keeps verification verbatim; note edit never upgrades it', () => {
+  const repo = createRepository();
+  const bm = repo.saveResearchBookmark({
+    caseId: PRIMARY_CASE_ID,
+    sourceKind: 'precedent',
+    sourceId: 'prec-v006',
+    title: 'Yargıtay 9. HD — zamanaşımı',
+    relation: 'karsi',
+    verificationStatus: 'DOĞRULANDI',
+  });
+  assert.equal(bm.verificationStatus, 'DOĞRULANDI');
+  const edited = repo.updateResearchBookmarkNote(bm.id, 'Islah ile ileri sürülebilir.');
+  assert.equal(edited?.note, 'Islah ile ileri sürülebilir.');
+  assert.equal(edited?.verificationStatus, 'DOĞRULANDI'); // unchanged
+});
+
+test('repository: draft duplicate copies body + resets status to taslak', () => {
+  const repo = createRepository();
+  const original = repo.createDraft({ title: 'İstinaf', draftType: 'istinaf', body: 'gövde' });
+  repo.changeDraftStatus(original.id, 'incelemede');
+  const dup = repo.duplicateDraft(original.id);
+  assert.equal(dup?.body, 'gövde');
+  assert.equal(dup?.status, 'taslak');
+  assert.equal(dup?.version, 1);
+  assert.match(dup?.title ?? '', /kopya/);
+});
+
+test('repository: reset restores seed even after P5–P9 mutations', () => {
+  const repo = createRepository();
+  repo.createCalendarEvent({ title: 'x', eventType: 'durusma', date: '2026-10-01' });
+  repo.createTimelineEvent({ caseId: PRIMARY_CASE_ID, date: '2026-10-01', title: 'x', eventType: 'islem' });
+  repo.createDocument({ name: 'x', docType: 'diger', caseId: PRIMARY_CASE_ID, fileName: 'x.pdf' });
+  repo.createEvidenceClaim({ caseId: PRIMARY_CASE_ID, title: 'x' });
+  repo.createDraft({ title: 'x', draftType: 'diger' });
+  repo.resetToSeed();
+  const seed = createSeedState();
+  const snap = repo.getSnapshot();
+  assert.equal(snap.calendar.length, seed.calendar.length);
+  assert.equal(snap.timeline.length, seed.timeline.length);
+  assert.equal(snap.documents.length, seed.documents.length);
+  assert.equal(snap.evidence.length, seed.evidence.length);
+  assert.equal(snap.drafts.length, seed.drafts.length);
+  assert.equal(snap.activities[0].kind, 'demo-reset');
+});

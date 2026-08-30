@@ -570,6 +570,18 @@ class DemoRepository {
     );
   }
 
+  /** Lawyer note only. Verification status / provenance are never touched here. */
+  updateResearchBookmarkNote(id: ID, note: string): DemoResearchBookmark | undefined {
+    const existing = this.state.researchBookmarks.find((b) => b.id === id);
+    if (!existing) return undefined;
+    const updated: DemoResearchBookmark = { ...existing, note: note.trim() || undefined };
+    this.commit(
+      { ...this.state, researchBookmarks: this.state.researchBookmarks.map((b) => (b.id === id ? updated : b)) },
+      { kind: 'research-saved', caseId: updated.caseId, summary: 'Kaynak notu güncellendi', detail: updated.title },
+    );
+    return updated;
+  }
+
   /* ------------------------------- drafts ------------------------ */
 
   createDraft(input: Pick<DemoDraft, 'title' | 'draftType'> & Partial<DemoDraft>): DemoDraft {

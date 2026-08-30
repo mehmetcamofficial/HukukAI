@@ -10,9 +10,7 @@ import { CasesPage } from '@/pages/cases';
 import { ClientsPage } from '@/pages/clients';
 import {
   ArchivePage,
-  AssistantPage,
   DocumentsPage,
-  DraftsPage,
   LegislationPage,
   PrecedentPage,
   ResearchRoutePage,
@@ -21,6 +19,8 @@ import { CaseWorkspacePage } from '@/pages/cases/case-workspace';
 import { SettingsPage } from '@/pages/settings';
 import { CalendarPage } from '@/pages/calendar';
 import { TasksPage } from '@/pages/tasks';
+import { AssistantPage } from '@/pages/assistant';
+import { DraftsPage, DraftEditorPage } from '@/pages/drafts';
 import { LandingPage } from '@/pages/landing';
 import { LoginPage } from '@/pages/login';
 import { DemoAuthGuard } from '@/components/app/demo-auth-guard';
@@ -60,6 +60,7 @@ function ApplicationRouter() {
               <Route path="/hukuki-arastirma" component={ResearchRoutePage} />
               <Route path="/emsal-kararlar" component={PrecedentPage} />
               <Route path="/mevzuat" component={LegislationPage} />
+              <Route path="/dilekceler/:draftId" component={DraftEditorPage} />
               <Route path="/dilekceler" component={DraftsPage} />
               <Route path="/takvim" component={CalendarPage} />
               <Route path="/ai-asistan" component={AssistantPage} />

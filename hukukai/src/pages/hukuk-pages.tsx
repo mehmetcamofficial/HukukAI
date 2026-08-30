@@ -1,22 +1,18 @@
 import { useMemo, useState } from 'react';
-import {
-  getGetResearchQueryKey,
-  useCreateResearch,
-  useGetResearch,
-} from '@workspace/api-client-react';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link, useSearch } from 'wouter';
 import {
-  BookOpen,
+  ArrowDownUp,
+  BookmarkPlus,
   FileText,
   FolderOpen,
-  LoaderCircle,
-  Send,
+  Plus,
   ShieldCheck,
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
 import { SearchInput } from '@/components/search-input';
+import { useWorkspaceActions } from '@/components/workspace/workspace-actions';
+import type { ResearchSaveSource } from '@/components/dialogs/research-save-dialog';
 import {
   Table,
   TableBody,
@@ -27,11 +23,10 @@ import {
 } from '@/components/ui/table';
 import { verifiedLegislation, verifiedPrecedents } from '@/lib/legal-sources';
 import {
+  caseOutcomeLabels,
   caseStatusLabels,
   caseTypeLabels,
   documentTypeLabels,
-  draftStatusLabels,
-  draftTypeLabels,
   useWorkspace,
   type DocumentType,
 } from '@/lib/demo-repository';
@@ -39,20 +34,6 @@ import {
 /* -------------------------------------------------------------------------- */
 /*                              SHARED PIECES                                 */
 /* -------------------------------------------------------------------------- */
-
-function LoadingBlock() {
-  return (
-    <div className="space-y-4" data-testid="status-loading">
-      <div className="h-8 w-48 shimmer rounded-md" />
-      <div className="h-4 w-64 shimmer rounded-md" />
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="h-20 shimmer rounded-md" />
-        <div className="h-20 shimmer rounded-md" />
-        <div className="h-20 shimmer rounded-md" />
-      </div>
-    </div>
-  );
-}
 
 function EmptyBlock({ title, detail }: { title: string; detail: string }) {
   return (
@@ -70,125 +51,97 @@ const fmtDate = (value?: string | null) =>
     : '—';
 
 /* -------------------------------------------------------------------------- */
-/*                       RESEARCH / ASSISTANT (unchanged)                     */
+/*                       VERIFIED SOURCES + SAVE TO CASE                      */
 /* -------------------------------------------------------------------------- */
 
-function ResearchPage({ mode }: { mode: 'research' | 'assistant' }) {
-  const researchQuery = useGetResearch();
-  const createResearch = useCreateResearch();
-  const queryClient = useQueryClient();
-  const [query, setQuery] = useState('');
-  const items = Array.isArray(researchQuery.data) ? researchQuery.data : [];
-  const config = {
-    research: {
-      title: 'Hukuki Araştırma',
-      description: 'Kaynağa dayalı yanıt üretin.',
-      placeholder: 'Sorunuzu yazın; yanıtı, dayanakları ve belirsizlikleri birlikte görün.',
-    },
-    assistant: {
-      title: 'Hukuki Asistan',
-      description: 'Dosya bağlamıyla çalışan asistan kabuğu.',
-      placeholder: 'Örn. Bu dosyadaki eksik delilleri özetle.',
-    },
-  }[mode];
-
-  const submit = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    if (query.trim().length < 3) return;
-    createResearch.mutate(
-      { data: { query: query.trim() } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetResearchQueryKey() });
-          setQuery('');
-        },
-      },
-    );
-  };
-
+function SaveToCaseButton({ source }: { source: ResearchSaveSource }) {
+  const { saveResearch } = useWorkspaceActions();
   return (
-    <div className="mx-auto max-w-[1080px]">
-      <PageHeader title={config.title} description={config.description} />
-      <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70">
-        <ShieldCheck size={12} />
-        Canlı sağlayıcı bağlı değilse sonuçlar “Demo veri kümesi” olarak etiketlenir. Anlamsal (semantik) arama taklit edilmez.
-      </div>
-      <section className="rounded-md border border-border bg-card p-5">
-        <form onSubmit={submit}>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            data-testid="input-research-query"
-            placeholder={config.placeholder}
-            rows={3}
-            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
-          />
-          <div className="mt-3 flex justify-end">
-            <button
-              type="submit"
-              disabled={createResearch.isPending || query.trim().length < 3}
-              data-testid="button-submit-research"
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"
-            >
-              {createResearch.isPending ? <LoaderCircle size={14} className="animate-spin" /> : <Send size={14} />}
-              {mode === 'assistant' ? 'Sor' : 'Araştır'}
-            </button>
-          </div>
-        </form>
-      </section>
+    <button
+      type="button"
+      onClick={() => saveResearch(source)}
+      data-testid="button-save-to-case"
+      className="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-1 text-[10px] font-medium text-foreground hover:bg-muted"
+    >
+      <BookmarkPlus size={11} /> Dosyaya Kaydet
+    </button>
+  );
+}
 
-      <div className="mb-3 mt-6 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Sonuçlar</h2>
-        <span className="mono text-[11px] text-muted-foreground">{items.length} kayıt</span>
-      </div>
-      {researchQuery.isLoading ? (
-        <LoadingBlock />
-      ) : items.length === 0 ? (
-        <EmptyBlock title="Henüz sonuç yok" detail="Bir soru girin; yanıt kaynak etiketleriyle birlikte listelenecek." />
-      ) : (
-        <div className="space-y-3">
-          {items.map((item: { id: string; query: string; result: string; demo?: boolean; sources?: { title: string; status: string }[] }) => (
-            <div key={item.id} className="rounded-md border border-border bg-card p-4">
-              <div className="flex items-start justify-between">
-                <p className="text-sm font-medium">{item.query}</p>
-                {item.demo && <StatusBadge tone="neutral">DEMO VERİ</StatusBadge>}
-              </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.result}</p>
-              {item.sources && item.sources.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {item.sources.map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                      <BookOpen size={10} />
-                      {s.title}
-                      <StatusBadge tone={s.status === 'DOĞRULANDI' ? 'success' : 'warning'}>{s.status}</StatusBadge>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+function PrecedentCard({ p }: { p: (typeof verifiedPrecedents)[number] }) {
+  return (
+    <div className="rounded-md border border-border bg-card p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge tone={p.position === 'LEHE' ? 'success' : p.position === 'ALEYHE' ? 'danger' : 'warning'}>{p.position}</StatusBadge>
+            <span className="text-sm font-medium">{p.legalTopic}</span>
+          </div>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">{p.summary}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>{p.court} · {p.chamber}</span>
+            <span className="mono">{p.caseNumber} / {p.decisionNumber}</span>
+            <span>{p.decisionDate}</span>
+          </div>
         </div>
-      )}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <StatusBadge tone="success">{p.verificationStatus}</StatusBadge>
+          <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted">
+            Resmî Kaynağı Aç
+          </a>
+          <SaveToCaseButton
+            source={{
+              sourceKind: 'precedent',
+              sourceId: p.id,
+              title: `${p.chamber} — ${p.legalTopic}`,
+              citation: `${p.caseNumber} / ${p.decisionNumber} · ${p.decisionDate}`,
+              verificationStatus: p.verificationStatus,
+              sourceUrl: p.sourceUrl,
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-export function ResearchRoutePage() {
-  return <ResearchPage mode="research" />;
+function LegislationCard({ leg }: { leg: (typeof verifiedLegislation)[number] }) {
+  return (
+    <div className="rounded-md border border-border bg-card p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold">{leg.lawNumber} Sayılı {leg.lawName}</span>
+            <span className="mono text-[11px] text-muted-foreground">Madde {leg.articleNumber}</span>
+          </div>
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">{leg.articleTitle}</p>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">{leg.articleText}</p>
+          <div className="mt-2 text-[11px] text-muted-foreground">{leg.sourceName}</div>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <StatusBadge tone="success">{leg.verificationStatus}</StatusBadge>
+          <a href={leg.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted">
+            Resmî Kaynağı Aç
+          </a>
+          <SaveToCaseButton
+            source={{
+              sourceKind: 'legislation',
+              sourceId: leg.id,
+              title: `${leg.lawNumber} sayılı ${leg.lawName} — m.${leg.articleNumber}`,
+              citation: `${leg.lawNumber} s.K. m.${leg.articleNumber} · ${leg.articleTitle}`,
+              verificationStatus: leg.verificationStatus,
+              sourceUrl: leg.sourceUrl,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
-
-export function AssistantPage() {
-  return <ResearchPage mode="assistant" />;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                       PRECEDENTS / LEGISLATION (verified)                  */
-/* -------------------------------------------------------------------------- */
 
 export function PrecedentPage() {
   const searchString = useSearch();
-  const initial = new URLSearchParams(searchString).get('q') ?? '';
-  const [q, setQ] = useState(initial);
+  const [q, setQ] = useState(new URLSearchParams(searchString).get('q') ?? '');
   const norm = q.toLocaleLowerCase('tr-TR');
   const rows = verifiedPrecedents.filter((p) =>
     !norm || `${p.chamber} ${p.caseNumber} ${p.decisionNumber} ${p.legalTopic} ${p.summary}`.toLocaleLowerCase('tr-TR').includes(norm),
@@ -198,34 +151,11 @@ export function PrecedentPage() {
       <PageHeader title="Emsal Kararlar" description="Yargıtay ve mahkeme kararlarından doğrulanmış içtihatlar." />
       <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70">
         <ShieldCheck size={12} />
-        Kaynaklar doğrulanmıştır. Resmî kaynaklara bağlantı sağlanmıştır.
+        Kaynaklar doğrulanmıştır. Kaydetme, doğrulama durumunu değiştirmez.
       </div>
       <SearchInput value={q} onChange={setQ} placeholder="Konu, esas/karar no ara" className="mb-4 max-w-md" testId="input-search-precedents" />
       <div className="space-y-3">
-        {rows.map((p) => (
-          <div key={p.id} className="rounded-md border border-border bg-card p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge tone={p.position === 'LEHE' ? 'success' : p.position === 'ALEYHE' ? 'danger' : 'warning'}>{p.position}</StatusBadge>
-                  <span className="text-sm font-medium">{p.legalTopic}</span>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{p.summary}</p>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                  <span>{p.court} · {p.chamber}</span>
-                  <span className="mono">{p.caseNumber} / {p.decisionNumber}</span>
-                  <span>{p.decisionDate}</span>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <StatusBadge tone="success">{p.verificationStatus}</StatusBadge>
-                <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted">
-                  Resmî Kaynağı Aç
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
+        {rows.map((p) => <PrecedentCard key={p.id} p={p} />)}
       </div>
     </div>
   );
@@ -233,8 +163,7 @@ export function PrecedentPage() {
 
 export function LegislationPage() {
   const searchString = useSearch();
-  const initial = new URLSearchParams(searchString).get('q') ?? '';
-  const [q, setQ] = useState(initial);
+  const [q, setQ] = useState(new URLSearchParams(searchString).get('q') ?? '');
   const norm = q.toLocaleLowerCase('tr-TR');
   const rows = verifiedLegislation.filter((l) =>
     !norm || `${l.lawNumber} ${l.lawName} ${l.articleNumber} ${l.articleTitle} ${l.articleText}`.toLocaleLowerCase('tr-TR').includes(norm),
@@ -244,32 +173,53 @@ export function LegislationPage() {
       <PageHeader title="Mevzuat" description="İlgili kanun maddeleri ve Resmî Gazete kaynakları." />
       <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70">
         <ShieldCheck size={12} />
-        Kaynaklar Resmî Gazete üzerinden doğrulanmıştır.
+        Kaynaklar Resmî Gazete üzerinden doğrulanmıştır. Kaydetme, doğrulama durumunu değiştirmez.
       </div>
       <SearchInput value={q} onChange={setQ} placeholder="Kanun no veya madde ara" className="mb-4 max-w-md" testId="input-search-legislation" />
       <div className="space-y-3">
-        {rows.map((leg) => (
-          <div key={leg.id} className="rounded-md border border-border bg-card p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold">{leg.lawNumber} Sayılı {leg.lawName}</span>
-                  <span className="mono text-[11px] text-muted-foreground">Madde {leg.articleNumber}</span>
-                </div>
-                <p className="mt-0.5 text-xs font-medium text-muted-foreground">{leg.articleTitle}</p>
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{leg.articleText}</p>
-                <div className="mt-2 text-[11px] text-muted-foreground">{leg.sourceName}</div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <StatusBadge tone="success">{leg.verificationStatus}</StatusBadge>
-                <a href={leg.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted">
-                  Resmî Kaynağı Aç
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
+        {rows.map((leg) => <LegislationCard key={leg.id} leg={leg} />)}
       </div>
+    </div>
+  );
+}
+
+export function ResearchRoutePage() {
+  const searchString = useSearch();
+  const [q, setQ] = useState(new URLSearchParams(searchString).get('q') ?? '');
+  const [kind, setKind] = useState<'all' | 'precedent' | 'legislation'>('all');
+  const norm = q.toLocaleLowerCase('tr-TR');
+  const precedents = kind === 'legislation' ? [] : verifiedPrecedents.filter((p) =>
+    !norm || `${p.chamber} ${p.caseNumber} ${p.legalTopic} ${p.summary}`.toLocaleLowerCase('tr-TR').includes(norm),
+  );
+  const legislation = kind === 'precedent' ? [] : verifiedLegislation.filter((l) =>
+    !norm || `${l.lawNumber} ${l.lawName} ${l.articleNumber} ${l.articleTitle} ${l.articleText}`.toLocaleLowerCase('tr-TR').includes(norm),
+  );
+  const total = precedents.length + legislation.length;
+
+  return (
+    <div className="mx-auto max-w-[1280px]">
+      <PageHeader title="Hukuki Araştırma" description="Doğrulanmış emsal ve mevzuat kaynaklarında arama yapın; dosyaya kaydedin." />
+      <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70">
+        <ShieldCheck size={12} />
+        Demo veri kümesi · canlı sağlayıcı bağlı değildir. Anlamsal (semantik) arama taklit edilmez.
+      </div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <SearchInput value={q} onChange={setQ} placeholder="Konu, kanun no, esas/karar no ara" testId="input-research-query" className="flex-1" />
+        <select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} className="h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus:border-primary">
+          <option value="all">Tüm kaynaklar</option>
+          <option value="precedent">Emsal Kararlar</option>
+          <option value="legislation">Mevzuat</option>
+        </select>
+        <span className="mono self-center text-[11px] text-muted-foreground">{total} kayıt</span>
+      </div>
+      {total === 0 ? (
+        <EmptyBlock title="Sonuç yok" detail="Aramayı değiştirin. Kaynaklar doğrulanmış demo veri kümesindendir." />
+      ) : (
+        <div className="space-y-3">
+          {precedents.map((p) => <PrecedentCard key={p.id} p={p} />)}
+          {legislation.map((leg) => <LegislationCard key={leg.id} leg={leg} />)}
+        </div>
+      )}
     </div>
   );
 }
@@ -280,9 +230,11 @@ export function LegislationPage() {
 
 export function DocumentsPage() {
   const ws = useWorkspace();
+  const actions = useWorkspaceActions();
   const [search, setSearch] = useState('');
   const [type, setType] = useState<'' | DocumentType>('');
   const [caseId, setCaseId] = useState('');
+  const [sortDesc, setSortDesc] = useState(true);
 
   const rows = useMemo(() => {
     const norm = search.toLocaleLowerCase('tr-TR');
@@ -293,14 +245,30 @@ export function DocumentsPage() {
         if (!norm) return true;
         return `${d.name} ${d.fileName ?? ''} ${d.source ?? ''} ${d.description ?? ''}`.toLocaleLowerCase('tr-TR').includes(norm);
       })
-      .sort((a, b) => (b.documentDate ?? b.createdAt).localeCompare(a.documentDate ?? a.createdAt));
-  }, [ws.documents, search, type, caseId]);
+      .sort((a, b) => {
+        const av = a.documentDate ?? a.createdAt;
+        const bv = b.documentDate ?? b.createdAt;
+        return sortDesc ? bv.localeCompare(av) : av.localeCompare(bv);
+      });
+  }, [ws.documents, search, type, caseId, sortDesc]);
 
   const caseLabel = (id?: string | null) => ws.cases.find((c) => c.id === id)?.title ?? '—';
 
   return (
     <div className="mx-auto max-w-[1280px]">
-      <PageHeader title="Belgeler" description="Dosya belgeleri ve kaynak doğrulama durumu (üst veri)." />
+      <PageHeader
+        title="Belgeler"
+        description="Dosya belgeleri ve kaynak doğrulama durumu. Yalnızca üst veri saklanır."
+        action={
+          <button
+            onClick={() => actions.newDocument()}
+            data-testid="button-new-document"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus size={14} /> Belge Ekle
+          </button>
+        }
+      />
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <SearchInput value={search} onChange={setSearch} placeholder="Belge adı ara" testId="input-search-documents" className="flex-1" />
         <select value={type} onChange={(e) => setType(e.target.value as DocumentType | '')} className="h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus:border-primary">
@@ -315,10 +283,16 @@ export function DocumentsPage() {
             <option key={c.id} value={c.id}>{c.title}</option>
           ))}
         </select>
+        <button
+          onClick={() => setSortDesc((v) => !v)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-xs font-medium text-muted-foreground hover:bg-muted"
+        >
+          <ArrowDownUp size={13} /> Tarih {sortDesc ? '↓' : '↑'}
+        </button>
       </div>
 
       {rows.length === 0 ? (
-        <EmptyBlock title="Belge bulunamadı" detail="Filtreleri değiştirin. Bir dosyaya belge eklemek için ilgili dava çalışma alanını açın." />
+        <EmptyBlock title="Belge bulunamadı" detail="Filtreleri değiştirin ya da yeni bir belge ekleyin." />
       ) : (
         <div className="overflow-hidden rounded-md border border-border bg-card">
           <Table>
@@ -333,7 +307,12 @@ export function DocumentsPage() {
             </TableHeader>
             <TableBody>
               {rows.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow
+                  key={d.id}
+                  className="cursor-pointer"
+                  data-testid={`doc-row-${d.id}`}
+                  onClick={() => actions.viewDocument(d.id)}
+                >
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <FileText size={14} className="text-muted-foreground" />
@@ -343,7 +322,7 @@ export function DocumentsPage() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell className="text-xs text-muted-foreground" onClick={(e) => e.stopPropagation()}>
                     {d.caseId ? <Link href={`/davalar/${d.caseId}?tab=documents`} className="hover:underline">{caseLabel(d.caseId)}</Link> : '—'}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{documentTypeLabels[d.docType]}</TableCell>
@@ -353,58 +332,6 @@ export function DocumentsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*                               DRAFTS (repo)                               */
-/* -------------------------------------------------------------------------- */
-
-export function DraftsPage() {
-  const ws = useWorkspace();
-  const searchString = useSearch();
-  const initial = new URLSearchParams(searchString).get('q') ?? '';
-  const [q, setQ] = useState(initial);
-  const norm = q.toLocaleLowerCase('tr-TR');
-  const rows = ws.drafts.filter((d) => !norm || `${d.title} ${d.body}`.toLocaleLowerCase('tr-TR').includes(norm));
-  const caseLabel = (id?: string | null) => ws.cases.find((c) => c.id === id)?.title;
-
-  return (
-    <div className="mx-auto max-w-[1080px]">
-      <PageHeader title="Dilekçeler" description="Dosya taslakları ve durumları." />
-      <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70">
-        <ShieldCheck size={12} />
-        Taslaklar avukat incelemesi gerektirir. Otomatik onay yapılmaz. Nitelikli elektronik imza / resmî tevdi anlamına gelmez.
-      </div>
-      <SearchInput value={q} onChange={setQ} placeholder="Taslak ara" className="mb-4 max-w-md" testId="input-search-drafts" />
-      {rows.length === 0 ? (
-        <EmptyBlock title="Taslak yok" detail="Bir dosyaya taslak eklemek için ilgili dava çalışma alanını açın." />
-      ) : (
-        <div className="space-y-2">
-          {rows.map((d) => (
-            <div key={d.id} className="rounded-md border border-border bg-card p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold">{d.title}</span>
-                <StatusBadge tone={d.status === 'onaylandi' ? 'success' : d.status === 'incelemede' ? 'warning' : 'neutral'}>
-                  {draftStatusLabels[d.status]}
-                </StatusBadge>
-                <span className="text-[11px] text-muted-foreground">
-                  {draftTypeLabels[d.draftType]} · v{d.version}{caseLabel(d.caseId) ? ` · ${caseLabel(d.caseId)}` : ''}
-                </span>
-              </div>
-              <pre className="mt-3 max-h-40 overflow-hidden whitespace-pre-wrap rounded bg-muted/50 p-3 font-sans text-[11px] leading-4 text-muted-foreground">
-                {d.body}
-              </pre>
-              {d.approvedAt && (
-                <p className="mt-2 text-[10px] text-muted-foreground/70">
-                  Avukat incelemesi tamamlandı olarak işaretlendi · {d.approvedBy}
-                </p>
-              )}
-            </div>
-          ))}
         </div>
       )}
     </div>
@@ -440,7 +367,7 @@ export function ArchivePage() {
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {caseTypeLabels[c.caseType]} · {c.clientName}
-                {c.outcome ? ` · Sonuç: ${c.outcome}` : ''}
+                {c.outcome ? ` · Sonuç: ${caseOutcomeLabels[c.outcome]}` : ''}
               </p>
             </Link>
           ))}
