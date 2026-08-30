@@ -28,10 +28,10 @@ const faqs = [
 ];
 
 const navigationGroups = [
-  { label: 'Ürün', items: [['Genel Bakış', '#urun'], ['Belge ve Delil Analizi', '#belge-delil'], ['Emsal Karar Araştırması', '#emsal-kararlar'], ['Mevzuat', '#kaynaklar'], ['Takvim ve Süreler', '#takvim'], ['Taslaklar', '#dava-yonetimi'], ['Hukuki Asistan', '#urun']] },
-  { label: 'Dava Yönetimi', items: [['Dava Dosyası', '#dava-yonetimi'], ['Belgeler', '#belge-delil'], ['Kronoloji', '#belge-delil'], ['Delil Matrisi', '#belge-delil'], ['Emsal Kararlar', '#emsal-kararlar'], ['Benzer Dosyalar', '#dava-yonetimi'], ['Taslaklar', '#dava-yonetimi']] },
-  { label: 'Hizmet Alanları', items: [['Ticaret ve Şirketler', '#practice-0'], ['Gayrimenkul ve Kira', '#practice-1'], ['Yabancılar / Uluslararası Yatırımlar', '#practice-2'], ['Aile / Tanıma-Tenfiz', '#practice-3'], ['İcra ve İflas', '#practice-4'], ['İş Hukuku', '#practice-5']] },
-  { label: 'Hakkında', items: [['Hakkında HukukAI', '#hakkinda'], ['Çalışma İlkeleri', '#calisma-ilkeleri'], ['Ekip Çalışması', '#ekip']] },
+  { label: 'Ürün', items: [['Genel Bakış', '/urun'], ['Belge ve Delil Analizi', '/belge-delil'], ['Emsal Karar Araştırması', '/emsal-arastirma'], ['Mevzuat', '/mevzuat?public=1'], ['Takvim ve Süreler', '/takvim-sureler'], ['Taslaklar', '/taslaklar'], ['Hukuki Asistan', '/hukuki-asistan']] },
+  { label: 'Dava Yönetimi', items: [['Dava Dosyası', '/urun#dava-yonetimi'], ['Belgeler', '/belge-delil#belgeler'], ['Kronoloji', '/urun#kaynaklar'], ['Delil Matrisi', '/belge-delil#delil-matrisi'], ['Emsal Kararlar', '/emsal-arastirma'], ['Benzer Dosyalar', '/urun#dava-yonetimi'], ['Taslaklar', '/taslaklar']] },
+  { label: 'Hizmet Alanları', items: [['Hizmet Alanları', '/hizmet-alanlari']] },
+  { label: 'Hakkında', items: [['HukukAI Hakkında', '/hakkinda'], ['Duyurular', '/duyurular'], ['İletişim', '/iletisim']] },
 ] as const;
 
 function Mark({ children }: { children: ReactNode }) {
@@ -145,6 +145,8 @@ export function LandingPage() {
   const navRef = useRef<HTMLElement>(null);
   const closeMenu = () => { setMenuOpen(false); setOpenGroup(null); };
 
+  useEffect(() => { document.title = 'HukukAI — Hukuk Çalışma Sistemi'; }, []);
+
   useEffect(() => {
     const closeOnOutside = (event: MouseEvent) => {
       if (navRef.current && event.target instanceof Node && !navRef.current.contains(event.target)) setOpenGroup(null);
@@ -182,7 +184,7 @@ export function LandingPage() {
     if (Object.keys(errors).length === 0) setFormSent(true);
   };
   return <div className="landing-page">
-    <header className="landing-nav" ref={navRef}><Link href="/" className="landing-logo"><span><Scale size={17} /></span>Hukuk<em>AI</em></Link><nav className={`landing-nav-links ${menuOpen ? 'open' : ''}`} aria-label="Ana gezinme">{navigationGroups.map((group) => <div className="nav-group" key={group.label}><button type="button" aria-expanded={openGroup === group.label} aria-controls={`nav-${group.label.toLocaleLowerCase('tr-TR').replaceAll(' ', '-')}`} onClick={() => setOpenGroup((current) => current === group.label ? null : group.label)}>{group.label}<ChevronDown size={13} /></button><div className={`nav-dropdown ${openGroup === group.label ? 'open' : ''}`} id={`nav-${group.label.toLocaleLowerCase('tr-TR').replaceAll(' ', '-')}`} role="menu">{group.items.map(([label, href]) => <a key={label} href={href} role="menuitem" onClick={closeMenu}>{label}</a>)}</div></div>)}<a href="#duyurular" onClick={closeMenu}>Duyurular</a><a href="#iletisim" onClick={closeMenu}>İletişim</a><Link href="/login" onClick={closeMenu} className="nav-demo-mobile">Demoyu İncele <ArrowRight size={14} /></Link></nav><Link href="/login" className="nav-cta">Demoyu İncele <ArrowRight size={14} /></Link><button className="menu-toggle" onClick={() => { setMenuOpen((value) => !value); setOpenGroup(null); }} aria-label="Menüyü aç veya kapat" aria-expanded={menuOpen}>{menuOpen ? <X /> : <Menu />}</button></header>
+    <header className="landing-nav" ref={navRef}><Link href="/" className="landing-logo"><span><Scale size={17} /></span>Hukuk<em>AI</em></Link><nav className={`landing-nav-links ${menuOpen ? 'open' : ''}`} aria-label="Ana gezinme">{navigationGroups.map((group) => <div className="nav-group" key={group.label}><button type="button" aria-expanded={openGroup === group.label} aria-controls={`nav-${group.label.toLocaleLowerCase('tr-TR').replaceAll(' ', '-')}`} onClick={() => setOpenGroup((current) => current === group.label ? null : group.label)}>{group.label}<ChevronDown size={13} /></button><div className={`nav-dropdown ${openGroup === group.label ? 'open' : ''}`} id={`nav-${group.label.toLocaleLowerCase('tr-TR').replaceAll(' ', '-')}`} role="menu">{group.items.map(([label, href]) => <Link key={label} href={href} role="menuitem" onClick={closeMenu}>{label}</Link>)}</div></div>)}<Link href="/duyurular" onClick={closeMenu}>Duyurular</Link><Link href="/iletisim" onClick={closeMenu}>İletişim</Link><Link href="/login" onClick={closeMenu} className="nav-demo-mobile">Demoyu İncele <ArrowRight size={14} /></Link></nav><Link href="/login" className="nav-cta">Demoyu İncele <ArrowRight size={14} /></Link><button className="menu-toggle" onClick={() => { setMenuOpen((value) => !value); setOpenGroup(null); }} aria-label="Menüyü aç veya kapat" aria-expanded={menuOpen}>{menuOpen ? <X /> : <Menu />}</button></header>
 
     <main>
       <section className="hero-section"><div className="hero-copy"><p className="landing-kicker"><span>01</span>HUKUK ÇALIŞMA SİSTEMİ</p><h1>Dava, belge, emsal ve süre yönetimini <i>tek çalışma alanında</i> birleştirin.</h1><p className="hero-description">HukukAI; dava yönetimini, belge ve delil analizini, emsal araştırmasını, mevzuat takibini ve süre yönetimini tek bir kurumsal sistemde birleştirir.</p><div className="hero-actions"><Link href="/login" className="button-primary">Demoyu İncele <ArrowRight size={16} /></Link><a href="#dava-yonetimi" className="button-secondary">Nasıl Çalışır? <ChevronDown size={15} /></a></div><p className="trust-line"><span /> Kurgusal demo dosyaları <i>·</i> Doğrulanmış kamu kaynakları</p></div><div className="hero-visual"><HeroSimulation /></div></section>
@@ -193,6 +195,15 @@ export function LandingPage() {
 
       <InteractiveFeatureShowcase />
 
+      <section className="landing-hub" aria-labelledby="landing-hub-title">
+        <div className="landing-hub-heading"><p className="landing-kicker"><span>05</span>ÇALIŞMA ALANLARI</p><h2 id="landing-hub-title">İhtiyacınız olan ayrıntıya <i>doğrudan gidin.</i></h2><p>HukukAI’nin her çalışma alanı, kendi örneği ve iş akışıyla ayrı bir bilgi sayfasında anlatılır.</p></div>
+        <div className="landing-hub-grid">
+          {[['Belge ve Delil', 'İddia, karşı delil ve eksik kayıtları aynı bağlamda inceleyin.', '/belge-delil'], ['Emsal Araştırma', 'Emsal ilkeleri kaynak ve doğrulama durumu ile değerlendirin.', '/emsal-arastirma'], ['Mevzuat', 'Resmî metin, özet ve dosya yorumunu birbirinden ayırın.', '/mevzuat?public=1'], ['Takvim ve Süreler', 'Duruşma, son süre ve dosya işlerini ortak gündemde tutun.', '/takvim-sureler'], ['Taslaklar', 'Taslağı, avukat incelemesini ve onay durumunu görün.', '/taslaklar'], ['Hukuki Asistan', 'Dosya bağlamında çalışma desteğinin sınırlarını inceleyin.', '/hukuki-asistan']].map(([title, copy, href], index) => <Link href={href} key={title} className="landing-hub-card"><span>{String(index + 1).padStart(2, '0')}</span><h3>{title}</h3><p>{copy}</p><b>İncele <ArrowRight size={14} /></b></Link>)}
+        </div>
+        <div className="landing-hub-meta"><div><p>HUKUKAI HAKKINDA</p><span>Ürün sahibi Mehmet Cam ile hukuki danışman Av. Behçet Alp’in rolleri açıkça ayrılmıştır.</span><Link href="/hakkinda">Hakkında sayfası <ArrowRight size={14} /></Link></div><div><p>İLETİŞİM</p><span>Demo, çalışma modeli veya hukuk bürosu ihtiyaçları için doğrudan iletişim bilgilerine ulaşın.</span><Link href="/iletisim">İletişim bilgileri <ArrowRight size={14} /></Link></div></div>
+      </section>
+
+      <div className="home-detail-content">
       <section className="sources-section" id="kaynaklar"><SectionIntro number="05" eyebrow="KAYNAK BÜTÜNLÜĞÜ" title={<>Kaynak ile yorum <i>birbirinden ayrılır.</i></>} copy="HukukAI, hukuki değerlendirmeleri resmî kaynaklardan ayrı gösterir. Emsal kararlar ve mevzuat kayıtları kaynak, tarih ve doğrulama durumu ile sunulur." centered /><div className="source-grid"><SourcePanel type="YARGITAY" title="Yargıtay 9. Hukuk Dairesi" detail="Fazla çalışma / bordro / ispat" href="https://www.alomaliye.com/2026/08/25/ucret-hesap-pusulasi-rehberi-2026/"><div className="ek-grid"><span>E. <b>2023/7974</b></span><span>K. <b>2023/11786</b></span><span>Tarih <b>12.09.2023</b></span></div><Mark>DOĞRULANDI</Mark></SourcePanel><SourcePanel type="MEVZUAT" title="4857 Sayılı İş Kanunu" detail="Madde 41 · Fazla çalışma ücreti" href="https://www.mevzuat.gov.tr/MevzuatMetin/1.5.4857.htm"><p className="law-summary">ÖZET · Haftalık kırk beş saati aşan çalışmalar için ücret hesabına ilişkin hüküm.</p><Mark>DOĞRULANDI</Mark></SourcePanel></div><div className="gazette-strip"><div><p>RESMÎ GAZETE ENTEGRASYONU</p><h3>Kamu kaynaklarını dosya bağlamında izlemek için hazırlanmış yapı.</h3></div><span><ShieldCheck size={17} /> Kaynak ve erişim durumu görünür kılınır</span></div></section>
 
       <section className="research-section" id="emsal-kararlar"><div className="research-head"><SectionIntro number="06" eyebrow="EMSAL ARAŞTIRMASI" title={<>Emsal araştırmasını dosyanın <i>bağlamından çıkarın.</i></>} copy="Arama sonuçlarını yalnızca listelemeyin; dosyanın delilleri ve hukuki sorusuyla birlikte değerlendirin." /><div className="research-query"><Search size={16} /><span>“Fazla çalışma — imzalı bordro — tanık delili”</span></div></div><div className="research-results">{[['LEHE', 'Yargıtay 9. HD', 'E. 2023/7974 · K. 2023/11786', 'Sembolik tahakkuklar ve mahsup'], ['ALEYHE', 'Yargıtay 9. HD', 'E. 2024/7636 · K. 2024/12837', 'İşyeri kayıtları ve tanık değerlendirmesi'], ['KARMA', '4857 Sayılı İş Kanunu', 'Madde 41', 'Fazla çalışma hesabı']].map(([type, court, id, principle]) => <article key={type}><span className={`research-type ${type.toLocaleLowerCase('tr-TR')}`}>{type}</span><h3>{court}</h3><p>{id}</p><strong>{principle}</strong><Mark>DOĞRULANDI</Mark></article>)}</div></section>
@@ -361,6 +372,7 @@ export function LandingPage() {
         </div>
       </section>
 
+      </div>
       <section className="final-cta"><p className="landing-kicker"><span>20</span>HUKUKAI DEMO</p><h2>Hukuk çalışmalarını <i>tek bir sistemde görün.</i></h2><p>HukukAI demosunda dava yönetimini, belge analizini, emsal araştırmasını ve süre takibini birlikte inceleyin.</p><div><Link href="/login" className="button-primary">Demoyu Aç <ArrowRight size={16} /></Link><Link href={caseHref} className="button-secondary">2026/145 Dosyasını İncele <ArrowRight size={15} /></Link></div></section>
       <aside className="legal-notice" aria-label="Hukuki bilgilendirme"><ShieldCheck size={16} /><p>Bu sitedeki içerikler genel bilgilendirme amaçlıdır ve hukuki görüş yerine geçmez. Site üzerinden bilgi paylaşılması tek başına avukat-müvekkil ilişkisi oluşturmaz.</p></aside>
     </main>
@@ -390,10 +402,10 @@ export function LandingPage() {
           </div>
         </div>
         <nav className="footer-links" aria-label="Alt menü">
-          <a href="#urun">Ürün</a>
-          <a href="#iletisim">İletişim</a>
+          <Link href="/urun">Ürün</Link>
+          <Link href="/iletisim">İletişim</Link>
           <Link href="/login">Demoyu İncele</Link>
-          <a href="#">Ana Sayfa</a>
+          <Link href="/">Ana Sayfa</Link>
         </nav>
         <p className="footer-copy">Kurgusal demo deneyimi · Hukuki görüş veya tavsiye değildir.</p>
       </div>

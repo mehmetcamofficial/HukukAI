@@ -1,247 +1,243 @@
-import { Link } from 'wouter';
+import { useMemo } from 'react';
+import { Link, useLocation } from 'wouter';
 import {
+  AlertTriangle,
   BriefcaseBusiness,
   CalendarDays,
-  Clock3,
   FileText,
-  ArrowRight,
-  AlertTriangle,
-  CheckCircle2,
-  ExternalLink,
+  Gavel,
+  ListChecks,
+  Plus,
 } from 'lucide-react';
-import {
-  useGetActivity,
-  useGetDashboard,
-  useHealthCheck,
-} from '@workspace/api-client-react';
 import { PageHeader } from '@/components/page-header';
 import { StatusBadge } from '@/components/status-badge';
+import { useWorkspaceActions } from '@/components/workspace/workspace-actions';
+import {
+  byDeadlineUrgency,
+  caseStatusLabels,
+  caseStatusTone,
+  getDeadlineInfo,
+  taskPriorityLabels,
+  taskStatusLabels,
+  useAgendaFeed,
+  useWorkspace,
+} from '@/lib/demo-repository';
 
-const fallbackDashboard = {
-  activeCases: 2,
-  upcomingHearings: 1,
-  upcomingDeadlines: 1,
-  documentsThisMonth: 10,
-  closedCases: 2,
-  alerts: [
-    { id: 'alert-1', title: 'Bilirkişi raporuna itiraz süresi', detail: '2026/145 — 02.09.2026 tarihine kadar itiraz dilekçesi sunulmalıdır', severity: 'HIGH', dueDate: '2026-09-02' },
-    { id: 'alert-2', title: 'Duruşma hazırlığı', detail: '2026/145 — 20.01.2027 saat 10:00, Kurgu 14. İş Mahkemesi', severity: 'MEDIUM', dueDate: '2027-01-20' },
-  ],
-  recentDocuments: [
-    { id: 'doc-010', filename: 'Bilirkişi_Raporu_2026_145.pdf', category: 'Bilirkişi Raporu', sizeLabel: '4.2 MB', verificationStatus: 'DEMO — KURGUSAL DAVA VERİSİ' },
-    { id: 'doc-009', filename: 'Durusma_Tutancagi_14_09_2026.pdf', category: 'Duruşma Tutanağı', sizeLabel: '0.6 MB', verificationStatus: 'DEMO — KURGUSAL DAVA VERİSİ' },
-    { id: 'doc-006', filename: 'WhatsApp_Yazismasi_Dokumu.pdf', category: 'İletişim Kaydı', sizeLabel: '3.5 MB', verificationStatus: 'DOĞRULANAMADI' },
-  ],
-  recentResearch: [
-    { id: 'research-001', query: 'Fazla mesai ispat yükü', result: 'Fazla çalışmada ispat yükü işçidedir. Ancak işverenin tutmakla yükümlü olduğu kayıt ve belgelerin işverende olması nedeniyle, işveren bu kayıtları sunmak zorundadır.', confidence: 'YÜKSEK', demo: true },
-    { id: 'research-002', query: 'Bilirkişi raporuna itiraz usulü', result: 'Bilirkişi raporuna karşı taraflar yazılı olarak itiraz edebilir. Mahkeme, itirazları değerlendirerek raporu kabul veya reddedebilir.', confidence: 'YÜKSEK', demo: true },
-  ],
-};
+const fmtDate = (value?: string | null) =>
+  value ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
 
-const fallbackActivity = [
-  { id: 'act-001', action: 'Belge eklendi', detail: 'Bilirkişi_Raporu_2026_145.pdf — 2026/145', createdAt: '2026-08-27', actor: 'Av. Behçet Alp' },
-  { id: 'act-002', action: 'Duruşma notu', detail: '14.09.2026 tarihli duruşma tutanağı eklendi', createdAt: '2026-08-26', actor: 'Ekip Avukatı' },
-  { id: 'act-003', action: 'Duruşma eklendi', detail: 'Sonraki duruşma: 20.01.2027 — Kurgu 14. İş Mahkemesi', createdAt: '2026-08-25', actor: 'Sistem' },
-];
-
-function isValidDashboard(d: unknown): d is typeof fallbackDashboard {
-  return !!d && typeof d === 'object' && 'alerts' in (d as Record<string, unknown>) && Array.isArray((d as Record<string, unknown>).alerts);
-}
-
-const formatDate = (value?: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
-    : '—';
-
-const stats = [
-  { key: 'activeCases', label: 'Aktif Dava', icon: BriefcaseBusiness, color: 'text-primary' },
-  { key: 'upcomingHearings', label: 'Duruşma', icon: CalendarDays, color: 'text-amber-600' },
-  { key: 'upcomingDeadlines', label: 'Süre', icon: Clock3, color: 'text-red-600' },
-  { key: 'documentsThisMonth', label: 'Belge', icon: FileText, color: 'text-muted-foreground' },
-  { key: 'closedCases', label: 'Kapanan', icon: CheckCircle2, color: 'text-emerald-600' },
-] as const;
+const fmtTime = (iso: string) =>
+  new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 export function DashboardPage() {
-  const dashboardQuery = useGetDashboard();
-  const activityQuery = useGetActivity();
-  const healthQuery = useHealthCheck();
-  const rawDashboard = dashboardQuery.data as unknown;
-  const dashboard = isValidDashboard(rawDashboard) ? rawDashboard : fallbackDashboard;
-  const activity = Array.isArray(activityQuery.data) ? activityQuery.data : fallbackActivity;
-  const isDemoMode = !isValidDashboard(rawDashboard) || dashboardQuery.isError || healthQuery.isError;
+  const ws = useWorkspace();
+  const actions = useWorkspaceActions();
+  const [, navigate] = useLocation();
+  const agenda = useAgendaFeed(21);
+
+  const activeCases = useMemo(
+    () =>
+      ws.cases
+        .filter((c) => c.status !== 'closed')
+        .sort((a, b) => byDeadlineUrgency(a.nextDeadline ?? a.nextHearing, b.nextDeadline ?? b.nextHearing)),
+    [ws.cases],
+  );
+
+  const openTasks = useMemo(
+    () =>
+      ws.tasks
+        .filter((t) => t.status !== 'done')
+        .sort((a, b) => byDeadlineUrgency(a.dueDate, b.dueDate))
+        .slice(0, 6),
+    [ws.tasks],
+  );
+
+  const caseLabel = (id?: string | null) => ws.cases.find((c) => c.id === id)?.title ?? 'Dosyasız';
 
   return (
     <div className="mx-auto max-w-[1280px]">
-      <PageHeader
-        title="Genel Bakış"
-        description="Hoş geldiniz, Av. Behçet Alp · Dosyalarınızın durumu ve öncelikler."
-      />
-
-      {isDemoMode && (
-        <div className="mb-4 flex items-center gap-2 text-[11px] text-muted-foreground/70" data-testid="status-health">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          Demo Modu · Kurgusal dava verisi + doğrulanmış kamu kaynakları
+      <PageHeader title="Genel Bakış" description="Bugün ne yapmam gerekiyor?">
+        <div className="flex items-center gap-2 rounded border border-amber-300/40 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Demo · yerel veri
         </div>
-      )}
+      </PageHeader>
 
-      {dashboardQuery.isLoading ? (
-        <div className="space-y-4" data-testid="status-loading">
-          <div className="h-10 w-48 shimmer rounded-md" />
-          <div className="grid gap-3 sm:grid-cols-5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 shimmer rounded-md" />
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="mb-2 flex items-center justify-between"><h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Aktif Dosyalar</h2><Link href="/davalar" className="text-xs font-semibold text-primary hover:underline">Tüm davalar</Link></div>
-          <Link
-            href="/davalar/case-2026-145"
-            className="mb-5 block rounded-md border border-border bg-card p-4 transition-colors hover:bg-muted/50"
-            data-testid="card-primary-case"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <StatusBadge tone="success">Aktif</StatusBadge>
-                  <span className="mono text-[11px] text-muted-foreground">2026/145</span>
-                  <span className="text-muted-foreground">·</span>
-                  <span className="text-[11px] text-muted-foreground">İş Hukuku</span>
-                </div>
-                <h2 className="text-base font-semibold">İşçilik Alacağı</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Kurgu 14. İş Mahkemesi · Müvekkil: Deniz Aras</p>
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><CalendarDays size={12} /> Duruşma: 20.01.2027</span>
-                  <span className="flex items-center gap-1.5"><Clock3 size={12} /> Süre: 02.09.2026</span>
-                  <span className="flex items-center gap-1.5"><FileText size={12} /> 10 belge</span>
-                </div>
-              </div>
-              <span className="mt-1 inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                Dosyayı Aç <ArrowRight size={12} />
-              </span>
+      {/* Quick actions */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        <QuickAction onClick={() => actions.newCase()} icon={<BriefcaseBusiness size={14} />}>Yeni Dava</QuickAction>
+        <QuickAction onClick={() => actions.newTask()} icon={<ListChecks size={14} />}>Görev Ekle</QuickAction>
+        <QuickAction onClick={() => actions.newCalendarEvent()} icon={<CalendarDays size={14} />}>Duruşma / Süre Ekle</QuickAction>
+        <QuickAction onClick={() => actions.newDocument()} icon={<FileText size={14} />}>Belge Ekle</QuickAction>
+        <QuickAction onClick={() => navigate('/takvim')} icon={<CalendarDays size={14} />}>Takvim</QuickAction>
+        <QuickAction onClick={() => navigate('/emsal-kararlar')} icon={<Gavel size={14} />}>Emsal Ara</QuickAction>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+        <div className="space-y-4">
+          {/* Bugün + Geciken */}
+          <section className="rounded-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <h2 className="text-sm font-semibold">Bugün &amp; Yaklaşan Süreler</h2>
+              <Link href="/takvim" className="text-xs text-primary hover:underline">Takvim</Link>
             </div>
-          </Link>
-
-          <div className="grid gap-2 sm:grid-cols-5">
-            {stats.map(({ key, label, icon: Icon, color }) => (
-              <div
-                key={key}
-                className="flex items-center gap-3 rounded-md border border-border bg-card px-4 py-3"
-                data-testid={`card-stat-${label}`}
-              >
-                <Icon size={16} className={color} />
-                <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground">{label}</p>
-                  <p className="text-lg font-semibold leading-tight">{dashboard[key]}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_.6fr]">
-            <section className="rounded-md border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <h2 className="text-sm font-semibold">Öncelikli Görevler</h2>
-                <Link href="/takvim" className="text-xs text-primary hover:underline">
-                  Takvim
-                </Link>
-              </div>
-              <div>
-                {dashboard.alerts.map((alert, index) => (
-                  <Link
-                    href="/davalar/case-2026-145"
-                    key={alert.id}
-                    className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-0 hover:bg-muted/50"
-                  >
-                    <AlertTriangle
-                      size={14}
-                      className={index === 0 ? 'text-red-500' : 'text-amber-500'}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{alert.title}</p>
-                        <StatusBadge tone={index === 0 ? 'danger' : 'warning'}>
-                          {alert.severity === 'HIGH' ? 'Yüksek' : 'Orta'}
-                        </StatusBadge>
+            {agenda.all.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs text-muted-foreground">Yaklaşan süre veya duruşma yok.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {[...agenda.overdue, ...agenda.today, ...agenda.upcoming].slice(0, 8).map((it) => (
+                  <li key={it.id}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(it.caseId ? `/davalar/${it.caseId}` : '/takvim')}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-muted/50"
+                    >
+                      {it.deadline.status === 'overdue' ? (
+                        <AlertTriangle size={14} className="shrink-0 text-red-500" />
+                      ) : it.deadline.status === 'today' ? (
+                        <AlertTriangle size={14} className="shrink-0 text-amber-500" />
+                      ) : it.kind === 'task' ? (
+                        <ListChecks size={14} className="shrink-0 text-muted-foreground" />
+                      ) : (
+                        <CalendarDays size={14} className="shrink-0 text-muted-foreground" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{it.title}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          {it.caseLabel ? `${it.caseLabel} · ` : ''}{it.responsible ?? ''}
+                        </p>
                       </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{alert.detail}</p>
-                    </div>
-                    <span className="mono shrink-0 text-[11px] text-muted-foreground">
-                      {formatDate(alert.dueDate)}
-                    </span>
-                  </Link>
+                      <span
+                        className={`mono shrink-0 text-[11px] ${
+                          it.deadline.tone === 'danger' ? 'text-red-600' : it.deadline.tone === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {fmtDate(it.date)}{it.time ? ` ${it.time}` : ''} · {it.deadline.label}
+                      </span>
+                    </button>
+                  </li>
                 ))}
-              </div>
-            </section>
+              </ul>
+            )}
+          </section>
 
-            <section className="rounded-md border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <h2 className="text-sm font-semibold">Son Hareketler</h2>
-              </div>
-              <div className="divide-y divide-border">
-                {activity.slice(0, 4).map((event) => (
-                  <div key={event.id} className="px-4 py-3">
-                    <p className="text-sm font-medium">{event.action}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{event.detail}</p>
-                    <p className="mono mt-1 text-[10px] text-muted-foreground/70">
-                      {event.actor} · {event.createdAt}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+          {/* Aktif Dosyalar */}
+          <section className="rounded-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <h2 className="text-sm font-semibold">Aktif Dosyalar</h2>
+              <Link href="/davalar" className="text-xs text-primary hover:underline">Tüm davalar</Link>
+            </div>
+            {activeCases.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs text-muted-foreground">Aktif dosya yok.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {activeCases.slice(0, 5).map((c) => {
+                  const dl = getDeadlineInfo(c.nextDeadline);
+                  return (
+                    <li key={c.id}>
+                      <Link href={`/davalar/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <StatusBadge tone={caseStatusTone[c.status]}>{caseStatusLabels[c.status]}</StatusBadge>
+                            <span className="mono text-[11px] text-muted-foreground">{c.caseNumber ?? '—'}</span>
+                            <span className="text-sm font-medium">{c.title}</span>
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">{c.court ?? '—'} · {c.clientName}</p>
+                        </div>
+                        {c.nextDeadline && (
+                          <span className={`mono shrink-0 text-[11px] ${dl.tone === 'danger' ? 'text-red-600' : 'text-amber-700 dark:text-amber-300'}`}>
+                            {dl.label}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+        </div>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <section className="rounded-md border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <h2 className="text-sm font-semibold">Son Belgeler</h2>
-                <Link href="/belgeler" className="text-xs text-primary hover:underline">
-                  Tümünü gör
-                </Link>
+        <div className="space-y-4">
+          {/* Açık Görevler */}
+          <section className="rounded-md border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <h2 className="text-sm font-semibold">Açık Görevler</h2>
+              <Link href="/gorevler" className="text-xs text-primary hover:underline">Görevler</Link>
+            </div>
+            {openTasks.length === 0 ? (
+              <div className="px-4 py-6 text-center">
+                <p className="text-xs text-muted-foreground">Açık görev yok.</p>
+                <button onClick={() => actions.newTask()} className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-[11px] font-medium hover:bg-muted">
+                  <Plus size={12} /> Görev Ekle
+                </button>
               </div>
-              <div className="divide-y divide-border">
-                {dashboard.recentDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center gap-3 px-4 py-3">
-                    <FileText size={14} className="text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{doc.filename}</p>
-                      <p className="mono text-[11px] text-muted-foreground">
-                        {doc.category} · {doc.sizeLabel}
-                      </p>
-                    </div>
-                    <StatusBadge tone="neutral">{doc.verificationStatus}</StatusBadge>
-                  </div>
-                ))}
-              </div>
-            </section>
+            ) : (
+              <ul className="divide-y divide-border">
+                {openTasks.map((t) => {
+                  const d = getDeadlineInfo(t.dueDate);
+                  return (
+                    <li key={t.id}>
+                      <button type="button" onClick={() => actions.editTask(t.id)} className="flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-muted/50">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{t.title}</p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {caseLabel(t.caseId)} · {taskStatusLabels[t.status]}
+                          </p>
+                        </div>
+                        <StatusBadge tone={t.priority === 'critical' ? 'danger' : t.priority === 'high' ? 'warning' : 'neutral'}>
+                          {taskPriorityLabels[t.priority]}
+                        </StatusBadge>
+                        {t.dueDate && (
+                          <span className={`mono shrink-0 text-[11px] ${d.tone === 'danger' ? 'text-red-600' : d.tone === 'warning' ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'}`}>
+                            {d.label}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
 
-            <section className="rounded-md border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                <h2 className="text-sm font-semibold">Son Araştırmalar</h2>
-                <Link href="/hukuki-arastirma" className="text-xs text-primary hover:underline">
-                  Tümünü gör
-                </Link>
-              </div>
-              <div className="divide-y divide-border">
-                {dashboard.recentResearch.map((item) => (
-                  <Link
-                    href="/hukuki-arastirma"
-                    key={item.id}
-                    className="block px-4 py-3 hover:bg-muted/50"
-                  >
-                    <p className="text-sm font-medium">{item.query}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                      {item.result}
-                    </p>
-                  </Link>
+          {/* Son Hareketler */}
+          <section className="rounded-md border border-border bg-card">
+            <div className="border-b border-border px-4 py-2.5">
+              <h2 className="text-sm font-semibold">Son Hareketler</h2>
+            </div>
+            {ws.activities.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs text-muted-foreground">Kayıt yok.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {ws.activities.slice(0, 8).map((a) => (
+                  <li key={a.id} className="px-4 py-2.5">
+                    <p className="text-xs font-medium">{a.summary}</p>
+                    {a.detail && <p className="mt-0.5 text-[11px] text-muted-foreground">{a.detail}</p>}
+                    <p className="mono mt-1 text-[10px] text-muted-foreground/70">{a.actor} · {fmtTime(a.at)}</p>
+                  </li>
                 ))}
-              </div>
-            </section>
-          </div>
-        </>
-      )}
+              </ul>
+            )}
+            <p className="px-4 py-2 text-[10px] text-muted-foreground/60">
+              Demo etkinlik akışı — denetim kaydı değildir.
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function QuickAction({ onClick, icon, children }: { onClick: () => void; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted"
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
