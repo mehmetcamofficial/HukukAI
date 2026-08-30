@@ -11,18 +11,23 @@ import { ClientsPage } from '@/pages/clients';
 import {
   ArchivePage,
   AssistantPage,
-  CaseWorkspacePage,
   DocumentsPage,
   DraftsPage,
   LegislationPage,
   PrecedentPage,
   ResearchRoutePage,
-  SettingsPage,
 } from '@/pages/hukuk-pages';
+import { CaseWorkspacePage } from '@/pages/cases/case-workspace';
+import { SettingsPage } from '@/pages/settings';
 import { CalendarPage } from '@/pages/calendar';
+import { TasksPage } from '@/pages/tasks';
 import { LandingPage } from '@/pages/landing';
 import { LoginPage } from '@/pages/login';
 import { DemoAuthGuard } from '@/components/app/demo-auth-guard';
+import { hasDemoSession } from '@/lib/demo-auth';
+import { PublicDetailPage } from '@/pages/public/public-detail-page';
+import { ContactPage } from '@/pages/public/contact-page';
+import { WorkspaceActionsProvider } from '@/components/workspace/workspace-actions';
 import {
   Route,
   Switch,
@@ -43,24 +48,27 @@ function ApplicationRouter() {
   return (
     <DemoAuthGuard>
       <RoutedErrorBoundary>
-        <HukukShell>
-          <Switch>
-            <Route path="/app" component={DashboardPage} />
-            <Route path="/davalar" component={CasesPage} />
-            <Route path="/davalar/:caseId" component={CaseWorkspacePage} />
-            <Route path="/muvekkiller" component={ClientsPage} />
-            <Route path="/belgeler" component={DocumentsPage} />
-            <Route path="/hukuki-arastirma" component={ResearchRoutePage} />
-            <Route path="/emsal-kararlar" component={PrecedentPage} />
-            <Route path="/mevzuat" component={LegislationPage} />
-            <Route path="/dilekceler" component={DraftsPage} />
-            <Route path="/takvim" component={CalendarPage} />
-            <Route path="/ai-asistan" component={AssistantPage} />
-            <Route path="/arsiv" component={ArchivePage} />
-            <Route path="/ayarlar" component={SettingsPage} />
-            <Route component={NotFound} />
-          </Switch>
-        </HukukShell>
+        <WorkspaceActionsProvider>
+          <HukukShell>
+            <Switch>
+              <Route path="/app" component={DashboardPage} />
+              <Route path="/davalar" component={CasesPage} />
+              <Route path="/davalar/:caseId" component={CaseWorkspacePage} />
+              <Route path="/gorevler" component={TasksPage} />
+              <Route path="/muvekkiller" component={ClientsPage} />
+              <Route path="/belgeler" component={DocumentsPage} />
+              <Route path="/hukuki-arastirma" component={ResearchRoutePage} />
+              <Route path="/emsal-kararlar" component={PrecedentPage} />
+              <Route path="/mevzuat" component={LegislationPage} />
+              <Route path="/dilekceler" component={DraftsPage} />
+              <Route path="/takvim" component={CalendarPage} />
+              <Route path="/ai-asistan" component={AssistantPage} />
+              <Route path="/arsiv" component={ArchivePage} />
+              <Route path="/ayarlar" component={SettingsPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </HukukShell>
+        </WorkspaceActionsProvider>
       </RoutedErrorBoundary>
     </DemoAuthGuard>
   );
@@ -71,6 +79,14 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
+function LegislationRoute() {
+  // `/mevzuat` existed in the authenticated workspace before the public
+  // information page was introduced. Keep that workspace entry point intact
+  // for an active demo session, while exposing the public page to visitors.
+  if (hasDemoSession() && !window.location.search.includes('public=1')) return <ApplicationRouter />;
+  return <PublicDetailPage page="legislation" />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -79,6 +95,17 @@ function App() {
           <Switch>
             <Route path="/" component={LandingPage} />
             <Route path="/login" component={LoginPage} />
+            <Route path="/urun">{() => <PublicDetailPage page="product" />}</Route>
+            <Route path="/belge-delil">{() => <PublicDetailPage page="documents" />}</Route>
+            <Route path="/emsal-arastirma">{() => <PublicDetailPage page="precedents" />}</Route>
+            <Route path="/mevzuat" component={LegislationRoute} />
+            <Route path="/takvim-sureler">{() => <PublicDetailPage page="calendar" />}</Route>
+            <Route path="/taslaklar">{() => <PublicDetailPage page="drafts" />}</Route>
+            <Route path="/hukuki-asistan">{() => <PublicDetailPage page="assistant" />}</Route>
+            <Route path="/hizmet-alanlari">{() => <PublicDetailPage page="services" />}</Route>
+            <Route path="/hakkinda">{() => <PublicDetailPage page="about" />}</Route>
+            <Route path="/duyurular">{() => <PublicDetailPage page="announcements" />}</Route>
+            <Route path="/iletisim" component={ContactPage} />
             <ApplicationRouter />
           </Switch>
         </WouterRouter>

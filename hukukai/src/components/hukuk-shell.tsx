@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { clearDemoSession } from '@/lib/demo-auth';
+import { useWorkspaceActions } from '@/components/workspace/workspace-actions';
 import {
   Archive,
   BriefcaseBusiness,
@@ -11,6 +12,7 @@ import {
   Gavel,
   House,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   Menu,
   Moon,
@@ -34,6 +36,8 @@ const demoUser = {
 const primaryNav: NavItem[] = [
   { href: '/app', label: 'Genel Bakış', icon: LayoutDashboard },
   { href: '/davalar', label: 'Davalar', icon: BriefcaseBusiness },
+  { href: '/gorevler', label: 'Görevler', icon: ListChecks },
+  { href: '/takvim', label: 'Takvim & Süreler', icon: CalendarDays },
   { href: '/muvekkiller', label: 'Müvekkiller', icon: Users },
   { href: '/belgeler', label: 'Belgeler', icon: FileText },
 ];
@@ -43,11 +47,10 @@ const researchNav: NavItem[] = [
   { href: '/emsal-kararlar', label: 'Emsal Kararlar', icon: Gavel },
   { href: '/mevzuat', label: 'Mevzuat', icon: Archive },
   { href: '/dilekceler', label: 'Dilekçeler', icon: FileText },
+  { href: '/ai-asistan', label: 'Hukuki Asistan', icon: FolderSearch },
 ];
 
 const utilityNav: NavItem[] = [
-  { href: '/takvim', label: 'Takvim & Süreler', icon: CalendarDays },
-  { href: '/ai-asistan', label: 'Hukuki Asistan', icon: FolderSearch },
   { href: '/arsiv', label: 'Arşiv', icon: Archive },
 ];
 
@@ -165,6 +168,7 @@ export function HukukShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [location, setLocation] = useLocation();
+  const { openSearch } = useWorkspaceActions();
 
   const logout = () => {
     // DEMO AUTH ONLY — replace with server-side auth later.
@@ -223,13 +227,28 @@ export function HukukShell({ children }: { children: ReactNode }) {
             >
               <Menu size={19} />
             </button>
-            <div className="hidden items-center gap-2 rounded border border-border bg-card px-3 py-1.5 text-[12px] text-muted-foreground sm:flex sm:w-[240px]">
+            <button
+              type="button"
+              onClick={openSearch}
+              data-testid="button-open-search"
+              aria-keyshortcuts="Meta+K Control+K"
+              className="hidden items-center gap-2 rounded border border-border bg-card px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-muted sm:flex sm:w-[240px]"
+            >
               <Search size={14} />
-              <span className="flex-1">Ara</span>
+              <span className="flex-1 text-left">Ara veya işlem çalıştır</span>
               <span className="mono rounded border border-border px-1 py-0.5 text-[9px]">⌘K</span>
-            </div>
+            </button>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openSearch}
+              data-testid="button-open-search-mobile"
+              aria-label="Ara"
+              className="flex h-9 w-9 items-center justify-center rounded text-muted-foreground hover:bg-muted sm:hidden"
+            >
+              <Search size={15} />
+            </button>
             <button onClick={() => document.documentElement.classList.toggle('dark')} data-testid="button-toggle-theme" aria-label="Tema değiştir" className="flex h-9 w-9 items-center justify-center rounded text-muted-foreground hover:bg-muted">
               <Moon size={15} />
             </button>
