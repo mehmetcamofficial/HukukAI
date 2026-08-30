@@ -1,0 +1,514 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: HukukAI legal workspace API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: dashboard
+  - name: cases
+  - name: clients
+  - name: documents
+  - name: research
+  - name: analysis
+  - name: timeline
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Returns workspace overview data
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /activity:
+    get:
+      operationId: getActivity
+      tags: [dashboard]
+      summary: Returns recent workspace activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Activity"
+  /cases:
+    get:
+      operationId: getCases
+      tags: [cases]
+      summary: Lists cases
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Case"
+    post:
+      operationId: createCase
+      tags: [cases]
+      summary: Creates a case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseInput"
+      responses:
+        "201":
+          description: Created case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+  /cases/{caseId}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Gets a case workspace
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseWorkspace"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCase
+      tags: [cases]
+      summary: Updates a case
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaseUpdate"
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+  /cases/{caseId}/documents:
+    get:
+      operationId: getCaseDocuments
+      tags: [documents]
+      summary: Lists case documents
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Adds a document record to a case
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /clients:
+    get:
+      operationId: getClients
+      tags: [clients]
+      summary: Lists clients
+      responses:
+        "200":
+          description: Clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Creates a client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+  /research:
+    get:
+      operationId: getResearch
+      tags: [research]
+      summary: Lists recent legal research
+      responses:
+        "200":
+          description: Research history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Research"
+    post:
+      operationId: createResearch
+      tags: [research]
+      summary: Runs a source-grounded research request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchInput"
+      responses:
+        "201":
+          description: Research result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Research"
+  /cases/{caseId}/analysis:
+    get:
+      operationId: getCaseAnalysis
+      tags: [analysis]
+      summary: Gets the latest reviewable case analysis
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseAnalysis"
+    post:
+      operationId: createCaseAnalysis
+      tags: [analysis]
+      summary: Generates a demo analysis for review
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "201":
+          description: Analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseAnalysis"
+  /cases/{caseId}/timeline:
+    get:
+      operationId: getCaseTimeline
+      tags: [timeline]
+      summary: Lists case chronology events
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Timeline
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimelineEvent"
+    post:
+      operationId: createTimelineEvent
+      tags: [timeline]
+      summary: Adds a chronology event
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimelineEventInput"
+      responses:
+        "201":
+          description: Timeline event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimelineEvent"
+components:
+  parameters:
+    CaseId:
+      name: caseId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+    Dashboard:
+      type: object
+      required: [activeCases, upcomingHearings, upcomingDeadlines, documentsThisMonth, closedCases, alerts, recentDocuments, recentResearch]
+      properties:
+        activeCases: { type: number }
+        upcomingHearings: { type: number }
+        upcomingDeadlines: { type: number }
+        documentsThisMonth: { type: number }
+        closedCases: { type: number }
+        alerts:
+          type: array
+          items: { $ref: "#/components/schemas/Alert" }
+        recentDocuments:
+          type: array
+          items: { $ref: "#/components/schemas/Document" }
+        recentResearch:
+          type: array
+          items: { $ref: "#/components/schemas/Research" }
+    Alert:
+      type: object
+      required: [id, title, detail, severity, dueDate]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        severity: { type: string }
+        dueDate: { type: string }
+    Activity:
+      type: object
+      required: [id, action, detail, createdAt, actor]
+      properties:
+        id: { type: string }
+        action: { type: string }
+        detail: { type: string }
+        createdAt: { type: string }
+        actor: { type: string }
+    Case:
+      type: object
+      required: [id, title, caseNumber, court, category, clientName, opposingParty, status, filingDate, updatedAt, tags, documentCount]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        caseNumber: { type: string }
+        court: { type: string }
+        chamber: { type: ["string", "null"] }
+        category: { type: string }
+        clientName: { type: string }
+        opposingParty: { type: string }
+        status: { type: string }
+        filingDate: { type: string }
+        nextHearing: { type: ["string", "null"] }
+        nextDeadline: { type: ["string", "null"] }
+        updatedAt: { type: string }
+        summary: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        documentCount: { type: number }
+    CaseInput:
+      type: object
+      required: [title, caseNumber, court, category, clientName, opposingParty]
+      properties:
+        title: { type: string, minLength: 1 }
+        caseNumber: { type: string, minLength: 1 }
+        court: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        clientName: { type: string, minLength: 1 }
+        opposingParty: { type: string, minLength: 1 }
+        summary: { type: string }
+    CaseUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: string }
+        summary: { type: string }
+    CaseWorkspace:
+      allOf:
+        - $ref: "#/components/schemas/Case"
+        - type: object
+          required: [documents, timeline, analysis]
+          properties:
+            documents:
+              type: array
+              items: { $ref: "#/components/schemas/Document" }
+            timeline:
+              type: array
+              items: { $ref: "#/components/schemas/TimelineEvent" }
+            analysis: { $ref: "#/components/schemas/CaseAnalysis" }
+    Document:
+      type: object
+      required: [id, filename, category, type, uploadedAt, processingStatus, verificationStatus, sizeLabel]
+      properties:
+        id: { type: string }
+        caseId: { type: ["string", "null"] }
+        filename: { type: string }
+        category: { type: string }
+        type: { type: string }
+        uploadedAt: { type: string }
+        processingStatus: { type: string }
+        verificationStatus: { type: string }
+        sizeLabel: { type: string }
+        excerpt: { type: ["string", "null"] }
+    DocumentInput:
+      type: object
+      required: [filename, category, type]
+      properties:
+        filename: { type: string }
+        category: { type: string }
+        type: { type: string }
+        sizeLabel: { type: string }
+    Client:
+      type: object
+      required: [id, name, type, email, phone, caseCount, tags]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        caseCount: { type: number }
+        tags:
+          type: array
+          items: { type: string }
+    ClientInput:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        email: { type: string }
+        phone: { type: string }
+    Research:
+      type: object
+      required: [id, query, issue, createdAt, confidence, result, sources, demo]
+      properties:
+        id: { type: string }
+        query: { type: string }
+        issue: { type: string }
+        createdAt: { type: string }
+        confidence: { type: string }
+        result: { type: string }
+        demo: { type: boolean }
+        sources:
+          type: array
+          items: { $ref: "#/components/schemas/Source" }
+    ResearchInput:
+      type: object
+      required: [query]
+      properties:
+        query: { type: string, minLength: 3 }
+        caseId: { type: string }
+    Source:
+      type: object
+      required: [id, name, title, status, reference, excerpt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        title: { type: string }
+        status: { type: string }
+        reference: { type: string }
+        excerpt: { type: string }
+    CaseAnalysis:
+      type: object
+      required: [id, caseId, generatedAt, status, dispute, claims, defenses, strengths, weaknesses, missingEvidence, risks, sources, disclaimer]
+      properties:
+        id: { type: string }
+        caseId: { type: string }
+        generatedAt: { type: string }
+        status: { type: string }
+        dispute: { type: string }
+        claims:
+          type: array
+          items: { type: string }
+        defenses:
+          type: array
+          items: { type: string }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        missingEvidence:
+          type: array
+          items: { type: string }
+        risks:
+          type: array
+          items: { type: string }
+        sources:
+          type: array
+          items: { $ref: "#/components/schemas/Source" }
+        disclaimer: { type: string }
+    TimelineEvent:
+      type: object
+      required: [id, date, title, description, sourceStatus, editable]
+      properties:
+        id: { type: string }
+        date: { type: string }
+        title: { type: string }
+        description: { type: string }
+        sourceStatus: { type: string }
+        editable: { type: boolean }
+    TimelineEventInput:
+      type: object
+      required: [date, title, description]
+      properties:
+        date: { type: string }
+        title: { type: string }
+        description: { type: string }
