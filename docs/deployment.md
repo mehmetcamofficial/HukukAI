@@ -8,21 +8,24 @@
 * Output directory: `hukukai/dist/public`
 * Base path: `/` by default (override via `BASE_PATH` env if needed)
 * Dev port: `5173` by default (override via `PORT` env if needed)
-* SPA fallback: configured via `hukukai/vercel.json` and root `vercel.json`:
+* SPA fallback: configured via root `vercel.json` (GitHub root is Vercel project root):
   ```json
-  { "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+  { "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }] }
   ```
-  Ensures direct navigation / refresh on client routes works:
-  `/`, `/davalar`, `/davalar/:caseId`, `/muvekkiller`, `/belgeler`,
-  `/hukuki-arastirma`, `/emsal-kararlar`, `/mevzuat`, `/dilekceler`,
-  `/takvim`, `/ai-asistan`, `/arsiv`, `/ayarlar`
+  Ensures direct navigation / refresh on client routes works while **never** rewriting API routes:
+  - ` /` → `index.html`
+  - `/davalar` → `index.html` (SPA)
+  - `/davalar/case-2026-145` → `index.html` (SPA)
+  - `/api/*` → **NOT rewritten** — returns real 404 when backend not deployed (instead of HTML 200), allowing `customFetch` to treat it as `ApiError`/`ResponseParseError` and fallback to demo.
+  - Legacy `hukukai/vercel.json` removed to avoid conflicting configuration.
 * No Replit dependency: production build succeeds without `REPL_ID`, `PORT`, or `BASE_PATH`. Replit plugins are optional and dynamically imported only when `REPL_ID` is present.
 * Vercel project settings recommendation:
   - Framework preset: Vite
-  - Root directory: `hukukai` **or** repository root with custom build/output (both `vercel.json` variants are provided)
+  - Root directory: repository root (GitHub root)
   - Install command: `pnpm install`
   - Build command: `pnpm --filter @workspace/hukukai run build`
-  - Output directory: `dist/public` (if root = `hukukai`) or `hukukai/dist/public` (if root = repo)
+  - Output directory: `hukukai/dist/public`
+* Hotfix 2026-08-30: `customFetch` now rejects HTML for `/api/*` (SPA fallback leak) via `isHtmlResponse` + `ResponseParseError`, preventing malformed string from reaching `dashboard.alerts` and crashing `ErrorBoundary`. Dashboard degrades to `fallbackDashboard`/`fallbackActivity` with badge `Demo modu · API bağlı değil`.
 
 ## Backend: Current Express API prototype
 

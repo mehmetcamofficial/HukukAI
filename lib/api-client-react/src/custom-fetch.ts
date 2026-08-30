@@ -144,6 +144,12 @@ function getStringField(value: unknown, key: string): string | undefined {
   return trimmed === "" ? undefined : trimmed;
 }
 
+function isHtmlResponse(text: string, mediaType: string | null): boolean {
+  if (mediaType === "text/html") return true;
+  const trimmed = text.trimStart().toLowerCase();
+  return trimmed.startsWith("<!doctype") || trimmed.startsWith("<html");
+}
+
 function truncate(text: string, maxLength = 300): string {
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 }
@@ -308,7 +314,17 @@ async function parseSuccessBody(
 
     case "text": {
       const text = await response.text();
-      return text === "" ? null : text;
+      if (text === "") return null;
+      const mediaType = getMediaType(response.headers);
+      if (requestInfo.url.startsWith("/api") && isHtmlResponse(text, mediaType)) {
+        throw new ResponseParseError(
+          response,
+          text,
+          new Error("API returned HTML instead of JSON (likely SPA fallback or missing backend)"),
+          requestInfo,
+        );
+      }
+      return text;
     }
 
     case "blob":
@@ -365,6 +381,22 @@ export async function customFetch<T = unknown>(
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
     throw new ApiError(response, errorData, requestInfo);
+  }
+
+  // Guard: API routes must never receive HTML (SPA fallback). If a /api/* request
+  // returns text/html we treat it as a backend-unavailable failure rather than
+  // letting HTML leak into typed domain data and crash rendering.
+  if (requestInfo.url.startsWith("/api")) {
+    const mediaType = getMediaType(response.headers);
+    if (mediaType === "text/html") {
+      const raw = await response.clone().text();
+      throw new ResponseParseError(
+        response,
+        raw,
+        new Error("API returned HTML instead of JSON (likely SPA fallback or missing backend)"),
+        requestInfo,
+      );
+    }
   }
 
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;

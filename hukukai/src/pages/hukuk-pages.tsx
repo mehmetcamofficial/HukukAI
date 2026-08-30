@@ -116,6 +116,36 @@ const fallbackTimeline = [
   { id: "event-3", date: "18.04.2025", title: "İş ilişkisi sona erdi", description: "Taraf beyanlarından çıkarılan olay.", sourceStatus: "DOĞRULANAMADI", editable: true },
 ];
 
+const fallbackDashboard = {
+  activeCases: 3,
+  upcomingHearings: 2,
+  upcomingDeadlines: 1,
+  documentsThisMonth: 6,
+  closedCases: 1,
+  alerts: [
+    { id: "alert-1", title: "Bilirkişi raporuna itiraz", detail: "2026/145 — cevap süresi", severity: "HIGH", dueDate: "2026-09-02" },
+    { id: "alert-2", title: "Duruşma hazırlığı", detail: "2026/145 — 14. İş Mahkemesi", severity: "MEDIUM", dueDate: "2026-09-14" },
+  ],
+  recentDocuments: fallbackDocs,
+  recentResearch: [
+    {
+      id: "research-demo-1",
+      query: "Fazla çalışma ispatında elektronik yazışmalar",
+      issue: "Fazla çalışma ispatı",
+      createdAt: "2026-08-27",
+      confidence: "DEMO VERİ",
+      result: "Kurgusal ön inceleme — kaynak doğrulaması gerektirir.",
+      sources: [],
+      demo: true,
+    },
+  ],
+};
+
+const fallbackActivity = [
+  { id: "act-1", action: "Belge eklendi", detail: "Bilirkişi_Raporu_01.pdf — 2026/145", createdAt: "2026-08-27", actor: "Av. Ayşe Yılmaz" },
+  { id: "act-2", action: "Duruşma notu", detail: "Tahkikat zaptı özeti eklendi", createdAt: "2026-08-26", actor: "Av. Ayşe Yılmaz" },
+];
+
 const formatDate = (value?: string | null) =>
   value
     ? new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value))
@@ -223,13 +253,26 @@ export function DashboardPage() {
   const dashboardQuery = useGetDashboard();
   const activityQuery = useGetActivity();
   const healthQuery = useHealthCheck();
-  const dashboard = dashboardQuery.data;
-  const activity = activityQuery.data ?? [];
+  const rawDashboard = dashboardQuery.data as unknown;
+  const isValidDashboard = (d: unknown): d is typeof fallbackDashboard =>
+    !!d && typeof d === "object" && "alerts" in (d as Record<string, unknown>) && Array.isArray((d as Record<string, unknown>).alerts);
+  const dashboard = isValidDashboard(rawDashboard) ? rawDashboard : fallbackDashboard;
+  const activity = Array.isArray(activityQuery.data) ? activityQuery.data : fallbackActivity;
+  const isDemoMode = !isValidDashboard(rawDashboard) || dashboardQuery.isError || healthQuery.isError;
   return (
     <div className="mx-auto max-w-[1480px]">
       <PageHeader eyebrow="Çalışma alanı" title={<>Günün <em className="not-italic text-[hsl(var(--primary))]">hukuk</em> masası.</>} description="Dosyalarınızın nabzı, bugünün öncelikleri ve kaynak durumu tek bakışta." action={<div className="flex gap-2"><Link href="/arsiv" className="inline-flex items-center gap-2 rounded-lg border border-[hsl(var(--border))] px-3.5 py-2.5 text-xs font-extrabold"><Search size={15} />Arşivde ara</Link><Link href="/davalar" className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--primary))] px-3.5 py-2.5 text-xs font-extrabold text-[hsl(var(--primary-foreground))]"><Plus size={15} />Yeni dava</Link></div>} />
-      {healthQuery.data ? <div className="mb-5 flex items-center gap-2 text-[10px] text-[hsl(var(--muted-foreground))]" data-testid="status-health"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))]" />Güvenli çalışma alanı senkronize · {healthQuery.data.status}</div> : null}
-      {dashboardQuery.isLoading ? <LoadingBlock /> : dashboardQuery.isError || !dashboard ? <ErrorState onRetry={() => dashboardQuery.refetch()} /> : (
+      {isDemoMode ? (
+        <div className="mb-5 flex items-center gap-2 text-[10px] text-[hsl(var(--muted-foreground))]" data-testid="status-health">
+          <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))]" />
+          Demo modu · API bağlı değil — DEMO VERİ gösteriliyor
+        </div>
+      ) : healthQuery.data ? (
+        <div className="mb-5 flex items-center gap-2 text-[10px] text-[hsl(var(--muted-foreground))]" data-testid="status-health">
+          <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))]" />Güvenli çalışma alanı senkronize · {healthQuery.data.status}
+        </div>
+      ) : null}
+      {dashboardQuery.isLoading ? <LoadingBlock /> : (
         <>
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {([
