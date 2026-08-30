@@ -12,24 +12,71 @@ The first build is intentionally honest about what is and is not connected:
 - Document records and upload flows are ready for a secure storage adapter; confidential file bytes are not cached by the service worker.
 - PostgreSQL schema is prepared for organizations, roles, cases, clients, documents, audit logs, timeline events, research, and retrieval-ready memory chunks.
 
-## Run
-
-```bash
-pnpm install
-pnpm --filter @workspace/db run push
-pnpm --filter @workspace/api-server run dev
-```
-
-The web preview is started by the managed HukukAI workflow.
-
 ## Architecture
 
-- `lib/api-spec/openapi.yaml` is the API contract.
-- `lib/api-client-react` and `lib/api-zod` are generated from the contract.
-- `artifacts/api-server/src/routes/hukukai.ts` contains thin, validated demo handlers.
-- `artifacts/api-server/src/lib/demo-data.ts` is the clearly labeled demo provider.
-- `lib/db/src/schema/hukukai.ts` is the persistence schema.
-- `artifacts/hukukai/src` contains the browser application.
+* `hukukai/` — Vite/React PWA frontend (SPA, client-side routing via wouter)
+* `api-server/` — Express typed API prototype (long-running Node server, not yet Vercel serverless)
+* `lib/api-spec/` — OpenAPI contract (`openapi.yaml`)
+* `lib/api-client-react/` — generated React Query hooks from the contract (via Orval)
+* `lib/api-zod/` — generated Zod validation schemas from the contract
+* `lib/db/` — Drizzle ORM + PostgreSQL persistence layer (`lib/db/src/schema/hukukai.ts`)
+* `api-server/src/routes/hukukai.ts` — thin, validated demo handlers
+* `api-server/src/lib/demo-data.ts` — clearly labeled demo provider (fictional data)
+
+## Local Development
+
+Prerequisites: Node.js 24, pnpm
+
+```bash
+# Install all workspace packages
+pnpm install
+
+# Run frontend only (http://localhost:5173)
+pnpm dev
+# or explicitly:
+pnpm --filter @workspace/hukukai run dev
+
+# Optional: customize dev server
+# PORT=5173 BASE_PATH=/ pnpm --filter @workspace/hukukai run dev
+
+# Typecheck entire workspace
+pnpm run typecheck
+
+# Build entire workspace
+pnpm run build
+
+# Build / typecheck individual packages
+pnpm --filter @workspace/hukukai run build
+pnpm --filter @workspace/hukukai run typecheck
+pnpm --filter @workspace/api-server run build
+pnpm --filter @workspace/api-server run typecheck
+
+# Regenerate API client + Zod from OpenAPI spec
+pnpm --filter @workspace/api-spec run codegen
+
+# Database (requires DATABASE_URL)
+pnpm --filter @workspace/db run push
+```
+
+No `REPL_ID`, `PORT`, or `BASE_PATH` is required for local development or production build. Sensible defaults are used (`/` for base, `5173` for dev port).
+
+## Deployment Status
+
+**Frontend:** Prepared for Vercel static deployment.
+- Vite production build outputs to `hukukai/dist/public`.
+- SPA rewrites are configured via `hukukai/vercel.json` and root `vercel.json` so direct refresh on `/davalar`, `/muvekkiller`, `/hukuki-arastirma`, `/ai-asistan`, `/davalar/:caseId` and other client routes works.
+- Build command: `pnpm --filter @workspace/hukukai run build`
+- Output directory: `hukukai/dist/public`
+- No Replit infrastructure required.
+
+**Backend:** Current Express API prototype is **not** yet finalized for Vercel serverless.
+- `api-server` runs as a traditional long-running Express server (`node ./dist/index.mjs`).
+- It is incompatible with Vercel's serverless function model without adaptation.
+- See `docs/deployment.md` for options (adapt to Vercel Functions, deploy separately on a Node host, or consolidate later). No backend deployment is performed in Phase 0A.
+
+**Database:** PostgreSQL schema is defined via Drizzle ORM in `lib/db`. No production database is connected in this phase.
+
+**No production legal data source is currently integrated.** Official sources (UYAP, Yargıtay, Danıştay, AYM, Resmî Gazete) remain Phase 0B+ work behind `LegalSourceProvider` adapters. See `docs/legal-source-verification.md`.
 
 ## Safety boundaries
 
@@ -55,3 +102,5 @@ pnpm run typecheck
 pnpm run build
 pnpm --filter @workspace/api-spec run codegen
 ```
+
+Lint and test infrastructure is planned for Phase 0B. See `docs/technical-debt.md`. Root `pnpm lint` / `pnpm test` delegate to workspace packages via `pnpm -r --if-present`.

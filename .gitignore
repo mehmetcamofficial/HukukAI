@@ -1,0 +1,66 @@
+# ==============================
+# Dependencies
+# ==============================
+node_modules/
+.pnp/
+.pnp.js
+
+# ==============================
+# Build outputs (reproducible)
+# ==============================
+dist/
+**/dist/
+hukukai/dist/
+api-server/dist/
+lib/**/dist/
+.next/
+out/
+build/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+**/*.tsbuildinfo
+.tsbuildinfo
+
+# Source maps generated alongside build outputs
+# (kept only if intentionally committed – currently all are build artifacts)
+**/*.map
+
+# ==============================
+# Env & secrets
+# ==============================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==============================
+# OS & editor
+# ==============================
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# ==============================
+# Coverage & temp
+# ==============================
+coverage/
+.nyc_output/
+tmp/
+temp/
+*.tmp
+
+# ==============================
+# Vercel
+# ==============================
+.vercel/
+.vercel
+
+# ==============================
+# Misc
+# ==============================
+.cache/
+.parcel-cache/
